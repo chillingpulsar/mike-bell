@@ -9,9 +9,6 @@
   import type { SoundIds } from "$lib/types";
   import LetsConnect from "$lib/components/externals/lets-connect/lets-connect.svelte";
 
-  /** Latest picks for Tauri global hooks (listener registered once). */
-  const soundPrefs = { keyboard: "off" as SoundIds, mouse: "off" as SoundIds };
-
   let soundList: { id: SoundIds; name: string }[] = [
     { id: "off", name: "Off" },
     { id: "classic", name: "Classic" },
@@ -25,11 +22,6 @@
   ];
   let selectedMouseSoundId = $state<SoundIds>("off");
   let selectedKeyboardSoundId = $state<SoundIds>("off");
-
-  $effect(() => {
-    soundPrefs.keyboard = selectedKeyboardSoundId;
-    soundPrefs.mouse = selectedMouseSoundId;
-  });
 
   const keyboardSoundCapture = (e: KeyboardEvent) => {
     if (selectedKeyboardSoundId === "off") return;
@@ -49,41 +41,17 @@
     void invoke("prompt_global_input_access");
   }
 
+  /** Tauri: native rodio output (Web Audio is muted when the webview isn’t key). */
   $effect(() => {
-    if (isTauri()) {
-      let active = true;
-      const unlistenFns: Array<() => void> = [];
+    if (!isTauri()) return;
+    void invoke("set_sound_prefs", {
+      keyboard: selectedKeyboardSoundId,
+      mouse: selectedMouseSoundId,
+    });
+  });
 
-      void (async () => {
-        const { listen } = await import("@tauri-apps/api/event");
-        if (!active) return;
-
-        const uk = await listen("mikebell-keyboard", () => {
-          if (soundPrefs.keyboard === "off") return;
-          playKeyboard(soundPrefs.keyboard);
-        });
-        if (!active) {
-          uk();
-          return;
-        }
-        unlistenFns.push(uk);
-
-        const um = await listen("mikebell-mouse", () => {
-          if (soundPrefs.mouse === "off") return;
-          playMouse(soundPrefs.mouse);
-        });
-        if (!active) {
-          um();
-          return;
-        }
-        unlistenFns.push(um);
-      })();
-
-      return () => {
-        active = false;
-        for (const u of unlistenFns) u();
-      };
-    }
+  $effect(() => {
+    if (isTauri()) return;
 
     document.addEventListener("mousedown", onMouseDownCapture, true);
     document.addEventListener("keydown", keyboardSoundCapture, true);

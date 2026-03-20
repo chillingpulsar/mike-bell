@@ -1,4 +1,7 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
+mod desktop_audio;
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod global_listen;
 
 #[cfg(target_os = "macos")]
@@ -9,6 +12,17 @@ mod macos_access;
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
+
+/// Sync sound selections from the webview into the native audio + hook layer.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[tauri::command]
+fn set_sound_prefs(keyboard: String, mouse: String) {
+    desktop_audio::set_sound_prefs(keyboard, mouse);
+}
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[tauri::command]
+fn set_sound_prefs(_keyboard: String, _mouse: String) {}
 
 /// Re-show macOS Accessibility / Input Monitoring prompts (no-op on other OS).
 /// Must run on the main thread; `invoke` may call from a worker, so we always dispatch.
@@ -26,20 +40,33 @@ fn prompt_global_input_access(app: tauri::AppHandle) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, prompt_global_input_access])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            prompt_global_input_access,
+            set_sound_prefs
+        ])
         .setup(|app| {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            desktop_audio::init();
+            // macOS: prompt for Accessibility + Input Monitoring on the main thread *before* starting
+            // the CGEventTap listener. Starting rdev first often yields a tap that only sees
+            // in-app events until the user toggles permissions and restarts.
             #[cfg(target_os = "macos")]
             {
-                let handle = app.handle().clone();
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(800));
-                    let _ = handle.run_on_main_thread(|| {
-                        macos_access::request_global_input_permissions();
+                let main_scheduler = app.handle().clone();
+                let _ = main_scheduler.run_on_main_thread(move || {
+                    macos_access::request_global_input_permissions();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(500));
+                        global_listen::spawn();
                     });
                 });
             }
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            global_listen::spawn(app.handle().clone());
+            #[cfg(all(
+                not(target_os = "macos"),
+                not(any(target_os = "android", target_os = "ios"))
+            ))]
+            global_listen::spawn();
             Ok(())
         })
         .run(tauri::generate_context!())
