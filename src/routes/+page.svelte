@@ -12,6 +12,12 @@
     { id: "off", name: "Off" },
     { id: "classic", name: "Classic" },
     { id: "soft", name: "Soft" },
+    { id: "bubble", name: "Bubble" },
+    { id: "vault", name: "Vault" },
+    { id: "dew", name: "Dew" },
+    { id: "ink", name: "Ink" },
+    { id: "spark", name: "Spark" },
+    { id: "velvet", name: "Velvet" },
   ];
   let selectedMouseSoundId = $state<SoundIds>("off");
   let selectedKeyboardSoundId = $state<SoundIds>("off");
