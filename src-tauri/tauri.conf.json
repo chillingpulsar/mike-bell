@@ -13,12 +13,17 @@
     "windows": [
       {
         "title": "mikebell",
+        "hiddenTitle": true,
+        "resizable": false,
         "width": 400,
         "height": 700
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": [
+        "default"
+      ]
     }
   },
   "bundle": {

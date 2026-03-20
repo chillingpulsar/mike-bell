@@ -1,5 +1,6 @@
 <script lang="ts">
   import "./layout.css";
+  import { invoke, isTauri } from "@tauri-apps/api/core";
   import { playKeyboard, playMouse } from "$lib/sound-engines";
   import SelectPicker from "$lib/components/externals/select-picker/select-picker.svelte";
   import { Textarea } from "$lib/components/internals/textarea/index";
@@ -7,6 +8,9 @@
   import { ModeWatcher } from "mode-watcher";
   import type { SoundIds } from "$lib/types";
   import LetsConnect from "$lib/components/externals/lets-connect/lets-connect.svelte";
+
+  /** Latest picks for Tauri global hooks (listener registered once). */
+  const soundPrefs = { keyboard: "off" as SoundIds, mouse: "off" as SoundIds };
 
   let soundList: { id: SoundIds; name: string }[] = [
     { id: "off", name: "Off" },
@@ -22,7 +26,12 @@
   let selectedMouseSoundId = $state<SoundIds>("off");
   let selectedKeyboardSoundId = $state<SoundIds>("off");
 
-  const keyboardSoungCapture = (e: KeyboardEvent) => {
+  $effect(() => {
+    soundPrefs.keyboard = selectedKeyboardSoundId;
+    soundPrefs.mouse = selectedMouseSoundId;
+  });
+
+  const keyboardSoundCapture = (e: KeyboardEvent) => {
     if (selectedKeyboardSoundId === "off") return;
     if (e.repeat) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -36,13 +45,52 @@
     playMouse(selectedMouseSoundId);
   };
 
+  function requestSystemInputPermission() {
+    void invoke("prompt_global_input_access");
+  }
+
   $effect(() => {
+    if (isTauri()) {
+      let active = true;
+      const unlistenFns: Array<() => void> = [];
+
+      void (async () => {
+        const { listen } = await import("@tauri-apps/api/event");
+        if (!active) return;
+
+        const uk = await listen("mikebell-keyboard", () => {
+          if (soundPrefs.keyboard === "off") return;
+          playKeyboard(soundPrefs.keyboard);
+        });
+        if (!active) {
+          uk();
+          return;
+        }
+        unlistenFns.push(uk);
+
+        const um = await listen("mikebell-mouse", () => {
+          if (soundPrefs.mouse === "off") return;
+          playMouse(soundPrefs.mouse);
+        });
+        if (!active) {
+          um();
+          return;
+        }
+        unlistenFns.push(um);
+      })();
+
+      return () => {
+        active = false;
+        for (const u of unlistenFns) u();
+      };
+    }
+
     document.addEventListener("mousedown", onMouseDownCapture, true);
-    document.addEventListener("keydown", keyboardSoungCapture, true);
+    document.addEventListener("keydown", keyboardSoundCapture, true);
 
     return () => {
       document.removeEventListener("mousedown", onMouseDownCapture, true);
-      document.removeEventListener("keydown", keyboardSoungCapture, true);
+      document.removeEventListener("keydown", keyboardSoundCapture, true);
     };
   });
 </script>
