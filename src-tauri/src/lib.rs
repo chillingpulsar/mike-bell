@@ -16,13 +16,18 @@ fn greet(name: &str) -> String {
 /// Sync sound selections from the webview into the native audio + hook layer.
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
-fn set_sound_prefs(keyboard: String, mouse: String) {
-    desktop_audio::set_sound_prefs(keyboard, mouse);
+fn set_sound_prefs(
+    keyboard: String,
+    mouse: String,
+    keyboard_volume: f32,
+    mouse_volume: f32,
+) {
+    desktop_audio::set_sound_prefs(keyboard, mouse, keyboard_volume, mouse_volume);
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 #[tauri::command]
-fn set_sound_prefs(_keyboard: String, _mouse: String) {}
+fn set_sound_prefs(_keyboard: String, _mouse: String, _keyboard_volume: f32, _mouse_volume: f32) {}
 
 /// Re-show macOS Accessibility / Input Monitoring prompts (no-op on other OS).
 /// Must run on the main thread; `invoke` may call from a worker, so we always dispatch.
