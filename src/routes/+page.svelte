@@ -32,13 +32,13 @@
     if (e.repeat) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "Tab" || e.key === "Escape") return;
-    playKeyboard(selectedKeyboardSoundId);
+    playKeyboard(selectedKeyboardSoundId, selectedKeyboardVolume);
   };
 
   const onMouseDownCapture = (e: MouseEvent) => {
     if (selectedMouseSoundId === "off") return;
     if (e.button !== 0) return;
-    playMouse(selectedMouseSoundId);
+    playMouse(selectedMouseSoundId, selectedMouseVolume);
   };
 
   /** Tauri: native rodio output (Web Audio is muted when the webview isn’t key). */
@@ -47,6 +47,8 @@
     void invoke("set_sound_prefs", {
       keyboard: selectedKeyboardSoundId,
       mouse: selectedMouseSoundId,
+      keyboardVolume: selectedKeyboardVolume,
+      mouseVolume: selectedMouseVolume,
     });
   });
 
