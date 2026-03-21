@@ -247,6 +247,63 @@ fn kb_velvet() -> Vec<f32> {
     osc(wave_sine, 480.0, 360.0, 0.055, false, 0.09, 0.1, 0.085)
 }
 
+fn kb_wool() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 228.0, 118.0, 0.055, true, 0.1, 0.14, 0.095);
+    lp(&mut tone, 520.0, 0.85);
+    mix_at(&tone, &noise(0.014, 0.032, 780.0), 0.004)
+}
+
+fn kb_cocoa() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 300.0, 92.0, 0.048, true, 0.092, 0.15, 0.088);
+    lp_sweep(&mut tone, 480.0, 160.0, 0.07, 1.0);
+    mix(&tone, &noise(0.018, 0.055, 1250.0))
+}
+
+fn kb_plush() -> Vec<f32> {
+    osc(wave_sine, 395.0, 302.0, 0.072, false, 0.115, 0.085, 0.11)
+}
+
+fn kb_thock() -> Vec<f32> {
+    let tone = osc(wave_triangle, 168.0, 58.0, 0.052, true, 0.105, 0.17, 0.1);
+    mix_at(&tone, &noise(0.021, 0.072, 1580.0), 0.001)
+}
+
+fn kb_cream() -> Vec<f32> {
+    let a = osc(wave_sine, 332.0, 332.0 * 0.68, 0.042, true, 0.092, 0.078, 0.088);
+    let b = osc(wave_sine, 336.5, 336.5 * 0.68, 0.042, true, 0.092, 0.078, 0.088);
+    let body = mix(&a, &b);
+    mix_at(&body, &noise(0.01, 0.038, 2100.0), 0.006)
+}
+
+fn kb_flannel() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 360.0, 155.0, 0.04, true, 0.08, 0.12, 0.075);
+    bp(&mut tone, 1400.0, 0.9);
+    mix(&tone, &noise(0.016, 0.048, 950.0))
+}
+
+fn kb_ember() -> Vec<f32> {
+    let root = osc(wave_sine, 275.0, 118.0, 0.05, true, 0.095, 0.13, 0.09);
+    let harm = osc(wave_sine, 550.0, 236.0, 0.04, true, 0.06, 0.035, 0.055);
+    let body = mix(&root, &harm);
+    mix_at(&body, &noise(0.012, 0.04, 1400.0), 0.002)
+}
+
+fn kb_honey() -> Vec<f32> {
+    let tone = osc(wave_sine, 455.0, 268.0, 0.065, false, 0.105, 0.11, 0.1);
+    mix_at(&tone, &noise(0.011, 0.034, 1650.0), 0.008)
+}
+
+fn kb_cashmere() -> Vec<f32> {
+    let tone = osc(wave_sine, 545.0, 368.0, 0.038, true, 0.082, 0.1, 0.078);
+    mix(&tone, &noise(0.006, 0.026, 3400.0))
+}
+
+fn kb_moss() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 215.0, 78.0, 0.046, true, 0.115, 0.14, 0.11);
+    lp_sweep(&mut tone, 340.0, 95.0, 0.085, 1.0);
+    mix_at(&tone, &noise(0.017, 0.052, 620.0), 0.003)
+}
+
 // ── Mouse sound profiles ────────────────────────────────────────────────────
 
 fn ms_classic() -> Vec<f32> {
@@ -289,6 +346,63 @@ fn ms_velvet() -> Vec<f32> {
     osc(wave_sine, 480.0, 380.0, 0.045, false, 0.075, 0.09, 0.07)
 }
 
+fn ms_wool() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 310.0, 165.0, 0.032, true, 0.062, 0.11, 0.058);
+    lp(&mut tone, 640.0, 1.0);
+    mix_at(&tone, &noise(0.009, 0.024, 920.0), 0.002)
+}
+
+fn ms_cocoa() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 380.0, 145.0, 0.028, true, 0.055, 0.13, 0.052);
+    lp_sweep(&mut tone, 620.0, 240.0, 0.038, 1.0);
+    mix(&tone, &noise(0.011, 0.042, 1600.0))
+}
+
+fn ms_plush() -> Vec<f32> {
+    osc(wave_sine, 505.0, 395.0, 0.048, false, 0.082, 0.072, 0.078)
+}
+
+fn ms_thock() -> Vec<f32> {
+    let tone = osc(wave_triangle, 205.0, 72.0, 0.03, true, 0.062, 0.15, 0.058);
+    mix(&tone, &noise(0.014, 0.058, 1750.0))
+}
+
+fn ms_cream() -> Vec<f32> {
+    let a = osc(wave_sine, 588.0, 588.0 * 0.75, 0.022, true, 0.052, 0.065, 0.048);
+    let b = osc(wave_sine, 593.0, 593.0 * 0.75, 0.022, true, 0.052, 0.065, 0.048);
+    let body = mix(&a, &b);
+    mix_at(&body, &noise(0.006, 0.028, 2600.0), 0.003)
+}
+
+fn ms_flannel() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 455.0, 220.0, 0.024, true, 0.048, 0.1, 0.045);
+    bp(&mut tone, 1900.0, 1.0);
+    mix(&tone, &noise(0.01, 0.036, 1300.0))
+}
+
+fn ms_ember() -> Vec<f32> {
+    let root = osc(wave_sine, 410.0, 195.0, 0.028, true, 0.055, 0.1, 0.05);
+    let harm = osc(wave_sine, 820.0, 390.0, 0.022, true, 0.045, 0.028, 0.04);
+    let body = mix(&root, &harm);
+    mix_at(&body, &noise(0.008, 0.032, 2000.0), 0.0)
+}
+
+fn ms_honey() -> Vec<f32> {
+    let tone = osc(wave_sine, 685.0, 455.0, 0.038, false, 0.066, 0.09, 0.062);
+    mix_at(&tone, &noise(0.007, 0.026, 2400.0), 0.004)
+}
+
+fn ms_cashmere() -> Vec<f32> {
+    let tone = osc(wave_sine, 885.0, 615.0, 0.02, true, 0.052, 0.088, 0.048);
+    mix(&tone, &noise(0.0045, 0.022, 4100.0))
+}
+
+fn ms_moss() -> Vec<f32> {
+    let mut tone = osc(wave_triangle, 275.0, 105.0, 0.028, true, 0.058, 0.12, 0.055);
+    lp_sweep(&mut tone, 420.0, 155.0, 0.042, 1.0);
+    mix_at(&tone, &noise(0.012, 0.044, 880.0), 0.001)
+}
+
 // ── Dispatchers ──────────────────────────────────────────────────────────────
 
 fn build_keyboard(id: &str, volume_pct: f32) -> Option<SamplesBuffer<f32>> {
@@ -301,6 +415,16 @@ fn build_keyboard(id: &str, volume_pct: f32) -> Option<SamplesBuffer<f32>> {
         "ink"     => kb_ink(),
         "spark"   => kb_spark(),
         "velvet"  => kb_velvet(),
+        "wool"     => kb_wool(),
+        "cocoa"    => kb_cocoa(),
+        "plush"    => kb_plush(),
+        "thock"    => kb_thock(),
+        "cream"    => kb_cream(),
+        "flannel"  => kb_flannel(),
+        "ember"    => kb_ember(),
+        "honey"    => kb_honey(),
+        "cashmere" => kb_cashmere(),
+        "moss"     => kb_moss(),
         _ => return None,
     };
     Some(source(apply_volume(s, volume_pct)))
@@ -316,6 +440,16 @@ fn build_mouse(id: &str, volume_pct: f32) -> Option<SamplesBuffer<f32>> {
         "ink"     => ms_ink(),
         "spark"   => ms_spark(),
         "velvet"  => ms_velvet(),
+        "wool"     => ms_wool(),
+        "cocoa"    => ms_cocoa(),
+        "plush"    => ms_plush(),
+        "thock"    => ms_thock(),
+        "cream"    => ms_cream(),
+        "flannel"  => ms_flannel(),
+        "ember"    => ms_ember(),
+        "honey"    => ms_honey(),
+        "cashmere" => ms_cashmere(),
+        "moss"     => ms_moss(),
         _ => return None,
     };
     Some(source(apply_volume(s, volume_pct)))

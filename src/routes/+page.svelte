@@ -19,6 +19,16 @@
     { id: "ink", name: "Ink" },
     { id: "spark", name: "Spark" },
     { id: "velvet", name: "Velvet" },
+    { id: "wool", name: "Wool" },
+    { id: "cocoa", name: "Cocoa" },
+    { id: "plush", name: "Plush" },
+    { id: "thock", name: "Thock" },
+    { id: "cream", name: "Cream" },
+    { id: "flannel", name: "Flannel" },
+    { id: "ember", name: "Ember" },
+    { id: "honey", name: "Honey" },
+    { id: "cashmere", name: "Cashmere" },
+    { id: "moss", name: "Moss" },
   ];
 
   let selectedMouseSoundId = $state<SoundIds>("off");
