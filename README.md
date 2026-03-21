@@ -39,4 +39,4 @@ npm run check
 
 ## License
 
-Licensed under the GNU General Public License v3. See `LICENSE` for details.
+Licensed under the GNU General Public License v3. See [LICENSE](LICENSE) for details.
