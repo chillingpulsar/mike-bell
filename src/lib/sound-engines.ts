@@ -10,12 +10,26 @@ function ctx(): AudioContext {
   return audioContext;
 }
 
+function clampVolumePct(v: number): number {
+  if (Number.isNaN(v)) return 100;
+  return Math.min(100, Math.max(0, v));
+}
+
+/** Linear 0–100% master gain into the destination. */
+function volumeOut(c: AudioContext, volumePct: number): GainNode {
+  const g = c.createGain();
+  g.gain.value = clampVolumePct(volumePct) / 100;
+  g.connect(c.destination);
+  return g;
+}
+
 function noiseBurst(
   c: AudioContext,
   start: number,
   durationSec: number,
   peakGain: number,
   centerHz: number,
+  out: AudioNode,
 ) {
   const n = Math.floor(c.sampleRate * durationSec);
   const buf = c.createBuffer(1, n, c.sampleRate);
@@ -34,14 +48,15 @@ function noiseBurst(
   g.gain.exponentialRampToValueAtTime(0.0001, start + durationSec);
   src.connect(bp);
   bp.connect(g);
-  g.connect(c.destination);
+  g.connect(out);
   src.start(start);
   src.stop(start + durationSec + 0.01);
 }
 
 /** Classic mechanical-style key: body tone + short filtered click. */
-export function playKeyboardClassic() {
+export function playKeyboardClassic(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -51,15 +66,16 @@ export function playKeyboardClassic() {
   og.gain.setValueAtTime(0.22, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.08);
-  noiseBurst(c, t, 0.022, 0.09, 2400);
+  noiseBurst(c, t, 0.022, 0.09, 2400, out);
 }
 
 /** Softer, lower “typewriter” style hit. */
-export function playKeyboardSoft() {
+export function playKeyboardSoft(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -69,14 +85,15 @@ export function playKeyboardSoft() {
   og.gain.setValueAtTime(0.18, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.1);
 }
 
 /** Crisp mouse button: quick tick + tiny noise. */
-export function playMouseClassic() {
+export function playMouseClassic(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -89,15 +106,16 @@ export function playMouseClassic() {
   filter.frequency.value = 4800;
   osc.connect(filter);
   filter.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.025);
-  noiseBurst(c, t, 0.008, 0.045, 3200);
+  noiseBurst(c, t, 0.008, 0.045, 3200, out);
 }
 
 /** Softer plastic-style click. */
-export function playMouseSoft() {
+export function playMouseSoft(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -107,14 +125,15 @@ export function playMouseSoft() {
   og.gain.setValueAtTime(0.14, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.05);
 }
 
 /** Rising “pop” with a little air — playful key. */
-export function playKeyboardBubble() {
+export function playKeyboardBubble(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -124,15 +143,16 @@ export function playKeyboardBubble() {
   og.gain.setValueAtTime(0.2, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.06);
-  noiseBurst(c, t, 0.012, 0.04, 1800);
+  noiseBurst(c, t, 0.012, 0.04, 1800, out);
 }
 
 /** Short bubble chirp for clicks. */
-export function playMouseBubble() {
+export function playMouseBubble(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -142,15 +162,16 @@ export function playMouseBubble() {
   og.gain.setValueAtTime(0.15, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.038);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.04);
-  noiseBurst(c, t, 0.006, 0.028, 2200);
+  noiseBurst(c, t, 0.006, 0.028, 2200, out);
 }
 
 /** Low filtered thump — heavy switch. */
-export function playKeyboardVault() {
+export function playKeyboardVault(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -165,14 +186,16 @@ export function playKeyboardVault() {
   lp.connect(og);
   og.gain.setValueAtTime(0.12, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.13);
-  noiseBurst(c, t + 0.003, 0.018, 0.06, 600);
+  noiseBurst(c, t + 0.003, 0.018, 0.06, 600, out);
 }
 
 /** Tight low knock for mouse. */
-export function playMouseVault() {
+export function playMouseVault(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -186,14 +209,16 @@ export function playMouseVault() {
   lp.connect(og);
   og.gain.setValueAtTime(0.14, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.05);
-  noiseBurst(c, t, 0.01, 0.05, 900);
+  noiseBurst(c, t, 0.01, 0.05, 900, out);
 }
 
 /** Glassy dual-tone ping. */
-export function playKeyboardDew() {
+export function playKeyboardDew(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   for (const hz of [880, 883]) {
     const osc = c.createOscillator();
@@ -204,15 +229,16 @@ export function playKeyboardDew() {
     og.gain.setValueAtTime(0.09, t);
     og.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
     osc.connect(og);
-    og.connect(c.destination);
+    og.connect(out);
     osc.start(t);
     osc.stop(t + 0.11);
   }
 }
 
 /** Tiny crystalline click. */
-export function playMouseDew() {
+export function playMouseDew(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -222,15 +248,16 @@ export function playMouseDew() {
   og.gain.setValueAtTime(0.11, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.05);
-  noiseBurst(c, t, 0.006, 0.022, 4500);
+  noiseBurst(c, t, 0.006, 0.022, 4500, out);
 }
 
 /** Damped thunk — keyboard-sized. */
-export function playKeyboardInk() {
+export function playKeyboardInk(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -240,14 +267,15 @@ export function playKeyboardInk() {
   og.gain.setValueAtTime(0.15, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.085);
 }
 
 /** Damped thunk for mouse. */
-export function playMouseInk() {
+export function playMouseInk(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -257,14 +285,15 @@ export function playMouseInk() {
   og.gain.setValueAtTime(0.16, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.06);
 }
 
 /** Bright micro-tick for keys. */
-export function playKeyboardSpark() {
+export function playKeyboardSpark(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -278,15 +307,16 @@ export function playKeyboardSpark() {
   f.Q.value = 1.1;
   osc.connect(f);
   f.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.028);
-  noiseBurst(c, t, 0.007, 0.04, 4200);
+  noiseBurst(c, t, 0.007, 0.04, 4200, out);
 }
 
 /** Sharp bright click. */
-export function playMouseSpark() {
+export function playMouseSpark(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -300,15 +330,16 @@ export function playMouseSpark() {
   f.Q.value = 1.2;
   osc.connect(f);
   f.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.015);
-  noiseBurst(c, t, 0.005, 0.03, 5000);
+  noiseBurst(c, t, 0.005, 0.03, 5000, out);
 }
 
 /** Very soft rounded key. */
-export function playKeyboardVelvet() {
+export function playKeyboardVelvet(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -318,14 +349,15 @@ export function playKeyboardVelvet() {
   og.gain.setValueAtTime(0.1, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.085);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.09);
 }
 
 /** Ultra-soft bump. */
-export function playMouseVelvet() {
+export function playMouseVelvet(volumePct = 100) {
   const c = ctx();
+  const out = volumeOut(c, volumePct);
   const t = c.currentTime;
   const osc = c.createOscillator();
   const og = c.createGain();
@@ -335,67 +367,67 @@ export function playMouseVelvet() {
   og.gain.setValueAtTime(0.09, t);
   og.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
   osc.connect(og);
-  og.connect(c.destination);
+  og.connect(out);
   osc.start(t);
   osc.stop(t + 0.075);
 }
 
-export function playKeyboard(id: SoundIds) {
+export function playKeyboard(id: SoundIds, volumePct = 100) {
   if (id === "off") return;
   switch (id) {
     case "classic":
-      playKeyboardClassic();
+      playKeyboardClassic(volumePct);
       break;
     case "soft":
-      playKeyboardSoft();
+      playKeyboardSoft(volumePct);
       break;
     case "bubble":
-      playKeyboardBubble();
+      playKeyboardBubble(volumePct);
       break;
     case "vault":
-      playKeyboardVault();
+      playKeyboardVault(volumePct);
       break;
     case "dew":
-      playKeyboardDew();
+      playKeyboardDew(volumePct);
       break;
     case "ink":
-      playKeyboardInk();
+      playKeyboardInk(volumePct);
       break;
     case "spark":
-      playKeyboardSpark();
+      playKeyboardSpark(volumePct);
       break;
     case "velvet":
-      playKeyboardVelvet();
+      playKeyboardVelvet(volumePct);
       break;
   }
 }
 
-export function playMouse(id: SoundIds) {
+export function playMouse(id: SoundIds, volumePct = 100) {
   if (id === "off") return;
   switch (id) {
     case "classic":
-      playMouseClassic();
+      playMouseClassic(volumePct);
       break;
     case "soft":
-      playMouseSoft();
+      playMouseSoft(volumePct);
       break;
     case "bubble":
-      playMouseBubble();
+      playMouseBubble(volumePct);
       break;
     case "vault":
-      playMouseVault();
+      playMouseVault(volumePct);
       break;
     case "dew":
-      playMouseDew();
+      playMouseDew(volumePct);
       break;
     case "ink":
-      playMouseInk();
+      playMouseInk(volumePct);
       break;
     case "spark":
-      playMouseSpark();
+      playMouseSpark(volumePct);
       break;
     case "velvet":
-      playMouseVelvet();
+      playMouseVelvet(volumePct);
       break;
   }
 }

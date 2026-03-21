@@ -10,9 +10,10 @@ use std::sync::{Mutex, OnceLock};
 
 // ── Channel / thread infrastructure ──────────────────────────────────────────
 
-enum PlayCmd { Mouse(String), Keyboard(String) }
+enum PlayCmd { Mouse(String, f32), Keyboard(String, f32) }
 
-static PREFS: Mutex<(String, String)> = Mutex::new((String::new(), String::new()));
+static PREFS: Mutex<(String, String, f32, f32)> =
+    Mutex::new((String::new(), String::new(), 100.0, 100.0));
 static INIT_DONE: AtomicBool = AtomicBool::new(false);
 static TX: OnceLock<std::sync::mpsc::SyncSender<PlayCmd>> = OnceLock::new();
 
@@ -29,8 +30,8 @@ pub fn init() {
         };
         while let Ok(cmd) = rx.recv() {
             let samples = match &cmd {
-                PlayCmd::Mouse(id) => build_mouse(id),
-                PlayCmd::Keyboard(id) => build_keyboard(id),
+                PlayCmd::Mouse(id, vol) => build_mouse(id, *vol),
+                PlayCmd::Keyboard(id, vol) => build_keyboard(id, *vol),
             };
             if let Some(buf) = samples {
                 if let Ok(sink) = Sink::try_new(&handle) {
@@ -42,24 +43,24 @@ pub fn init() {
     });
 }
 
-pub fn set_sound_prefs(keyboard: String, mouse: String) {
-    *PREFS.lock().unwrap() = (keyboard, mouse);
+pub fn set_sound_prefs(keyboard: String, mouse: String, keyboard_volume: f32, mouse_volume: f32) {
+    *PREFS.lock().unwrap() = (keyboard, mouse, keyboard_volume, mouse_volume);
 }
 
-fn prefs() -> (String, String) { PREFS.lock().unwrap().clone() }
+fn prefs() -> (String, String, f32, f32) { PREFS.lock().unwrap().clone() }
 
 pub fn try_play_mouse() {
     let Some(tx) = TX.get() else { return };
-    let (_, m) = prefs();
+    let (_, m, _, mv) = prefs();
     if m.is_empty() || m == "off" { return; }
-    let _ = tx.try_send(PlayCmd::Mouse(m));
+    let _ = tx.try_send(PlayCmd::Mouse(m, mv));
 }
 
 pub fn try_play_keyboard() {
     let Some(tx) = TX.get() else { return };
-    let (k, _) = prefs();
+    let (k, _, kv, _) = prefs();
     if k.is_empty() || k == "off" { return; }
-    let _ = tx.try_send(PlayCmd::Keyboard(k));
+    let _ = tx.try_send(PlayCmd::Keyboard(k, kv));
 }
 
 // ── Synthesis primitives ─────────────────────────────────────────────────────
@@ -194,6 +195,16 @@ fn source(samples: Vec<f32>) -> SamplesBuffer<f32> {
     SamplesBuffer::new(1, SR as u32, samples)
 }
 
+fn apply_volume(mut samples: Vec<f32>, volume_pct: f32) -> Vec<f32> {
+    let g = (volume_pct / 100.0).clamp(0.0, 1.0);
+    if g < 1.0 {
+        for s in &mut samples {
+            *s *= g;
+        }
+    }
+    samples
+}
+
 // ── Keyboard sound profiles ─────────────────────────────────────────────────
 
 fn kb_classic() -> Vec<f32> {
@@ -280,7 +291,7 @@ fn ms_velvet() -> Vec<f32> {
 
 // ── Dispatchers ──────────────────────────────────────────────────────────────
 
-fn build_keyboard(id: &str) -> Option<SamplesBuffer<f32>> {
+fn build_keyboard(id: &str, volume_pct: f32) -> Option<SamplesBuffer<f32>> {
     let s = match id {
         "classic" => kb_classic(),
         "soft"    => kb_soft(),
@@ -292,10 +303,10 @@ fn build_keyboard(id: &str) -> Option<SamplesBuffer<f32>> {
         "velvet"  => kb_velvet(),
         _ => return None,
     };
-    Some(source(s))
+    Some(source(apply_volume(s, volume_pct)))
 }
 
-fn build_mouse(id: &str) -> Option<SamplesBuffer<f32>> {
+fn build_mouse(id: &str, volume_pct: f32) -> Option<SamplesBuffer<f32>> {
     let s = match id {
         "classic" => ms_classic(),
         "soft"    => ms_soft(),
@@ -307,5 +318,5 @@ fn build_mouse(id: &str) -> Option<SamplesBuffer<f32>> {
         "velvet"  => ms_velvet(),
         _ => return None,
     };
-    Some(source(s))
+    Some(source(apply_volume(s, volume_pct)))
 }
