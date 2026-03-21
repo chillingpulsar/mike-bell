@@ -2,12 +2,12 @@
   import "./layout.css";
   import { invoke, isTauri } from "@tauri-apps/api/core";
   import { playKeyboard, playMouse } from "$lib/sound-engines";
-  import SelectPicker from "$lib/components/externals/select-picker/select-picker.svelte";
   import { Textarea } from "$lib/components/internals/textarea/index";
   import DarkMode from "$lib/components/externals/dark-mode/dark-mode.svelte";
   import { ModeWatcher } from "mode-watcher";
   import type { SoundIds } from "$lib/types";
   import LetsConnect from "$lib/components/externals/lets-connect/lets-connect.svelte";
+  import SoundPicker from "./(components)/(sound-picker)/sound-picker.svelte";
 
   let soundList: { id: SoundIds; name: string }[] = [
     { id: "off", name: "Off" },
@@ -20,8 +20,12 @@
     { id: "spark", name: "Spark" },
     { id: "velvet", name: "Velvet" },
   ];
+
   let selectedMouseSoundId = $state<SoundIds>("off");
+  let selectedMouseVolume = $state(80);
+
   let selectedKeyboardSoundId = $state<SoundIds>("off");
+  let selectedKeyboardVolume = $state(80);
 
   const keyboardSoundCapture = (e: KeyboardEvent) => {
     if (selectedKeyboardSoundId === "off") return;
@@ -36,10 +40,6 @@
     if (e.button !== 0) return;
     playMouse(selectedMouseSoundId);
   };
-
-  function requestSystemInputPermission() {
-    void invoke("prompt_global_input_access");
-  }
 
   /** Tauri: native rodio output (Web Audio is muted when the webview isn’t key). */
   $effect(() => {
@@ -79,25 +79,19 @@
   </header>
 
   <section class="flex flex-col gap-4 rounded-lg p-6 bg-secondary">
-    <div class="flex flex-col gap-2">
-      <p class="text-xs font-medium tracking-wider text-muted-foreground">
-        KEYBOARD SOUNDS
-      </p>
-      <SelectPicker
-        bind:selectedId={selectedKeyboardSoundId}
-        selections={soundList}
-      />
-    </div>
+    <SoundPicker
+      title="KEYBOARD SOUNDS"
+      {soundList}
+      bind:selectedId={selectedKeyboardSoundId}
+      bind:volumeValue={selectedKeyboardVolume}
+    />
 
-    <div class="flex flex-col gap-2">
-      <p class="text-xs font-medium tracking-wider text-muted-foreground">
-        MOUSE SOUNDS
-      </p>
-      <SelectPicker
-        bind:selectedId={selectedMouseSoundId}
-        selections={soundList}
-      />
-    </div>
+    <SoundPicker
+      title="MOUSE SOUNDS"
+      {soundList}
+      bind:selectedId={selectedMouseSoundId}
+      bind:volumeValue={selectedMouseVolume}
+    />
   </section>
 
   <section class="flex flex-col gap-4 rounded-lg p-6 bg-secondary">
