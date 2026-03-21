@@ -7,4 +7,14 @@ export type SoundIds =
   | "dew"
   | "ink"
   | "spark"
-  | "velvet";
+  | "velvet"
+  | "wool"
+  | "cocoa"
+  | "plush"
+  | "thock"
+  | "cream"
+  | "flannel"
+  | "ember"
+  | "honey"
+  | "cashmere"
+  | "moss";
