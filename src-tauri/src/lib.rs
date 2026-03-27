@@ -4,6 +4,11 @@ mod desktop_audio;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod global_listen;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+mod keyboard_group;
+
+mod keyboard_prefs;
+
 #[cfg(target_os = "macos")]
 mod macos_access;
 
@@ -17,17 +22,31 @@ fn greet(name: &str) -> String {
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 fn set_sound_prefs(
-    keyboard: String,
-    mouse: String,
-    keyboard_volume: f32,
-    mouse_volume: f32,
+    keyboard_groups: keyboard_prefs::KeyboardGroupsPayload,
+    mouse_left: String,
+    mouse_right: String,
+    mouse_left_volume: f32,
+    mouse_right_volume: f32,
 ) {
-    desktop_audio::set_sound_prefs(keyboard, mouse, keyboard_volume, mouse_volume);
+    desktop_audio::set_sound_prefs(
+        keyboard_groups,
+        mouse_left,
+        mouse_right,
+        mouse_left_volume,
+        mouse_right_volume,
+    );
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 #[tauri::command]
-fn set_sound_prefs(_keyboard: String, _mouse: String, _keyboard_volume: f32, _mouse_volume: f32) {}
+fn set_sound_prefs(
+    _keyboard_groups: keyboard_prefs::KeyboardGroupsPayload,
+    _mouse_left: String,
+    _mouse_right: String,
+    _mouse_left_volume: f32,
+    _mouse_right_volume: f32,
+) {
+}
 
 /// Re-show macOS Accessibility / Input Monitoring prompts (no-op on other OS).
 /// Must run on the main thread; `invoke` may call from a worker, so we always dispatch.
