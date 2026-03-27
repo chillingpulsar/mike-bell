@@ -15,6 +15,7 @@ mod platform {
 
     // CGEventType constants
     const LEFT_MOUSE_DOWN: u32 = 1;
+    const RIGHT_MOUSE_DOWN: u32 = 3;
     const KEY_DOWN: u32 = 10;
 
     // CGEventField constants
@@ -30,8 +31,9 @@ mod platform {
     const TAB: i64 = 48;
     const ESCAPE: i64 = 53;
 
-    // Event mask: only the two event types we care about
-    const EVENT_MASK: u64 = (1 << LEFT_MOUSE_DOWN) | (1 << KEY_DOWN);
+    // Event mask: mouse buttons + key down
+    const EVENT_MASK: u64 =
+        (1 << LEFT_MOUSE_DOWN) | (1 << RIGHT_MOUSE_DOWN) | (1 << KEY_DOWN);
 
     type Ptr = *mut c_void;
 
@@ -69,7 +71,10 @@ mod platform {
     ) -> Ptr {
         match event_type {
             LEFT_MOUSE_DOWN => {
-                desktop_audio::try_play_mouse();
+                desktop_audio::try_play_mouse(desktop_audio::MouseSide::Left);
+            }
+            RIGHT_MOUSE_DOWN => {
+                desktop_audio::try_play_mouse(desktop_audio::MouseSide::Right);
             }
             KEY_DOWN => {
                 if CGEventGetIntegerValueField(event, FIELD_AUTOREPEAT) != 0 {
@@ -179,7 +184,10 @@ mod platform {
                         let _ = apply_modifier_key(&mut mods, key, false);
                     }
                     EventType::ButtonPress(Button::Left) => {
-                        desktop_audio::try_play_mouse();
+                        desktop_audio::try_play_mouse(desktop_audio::MouseSide::Left);
+                    }
+                    EventType::ButtonPress(Button::Right) => {
+                        desktop_audio::try_play_mouse(desktop_audio::MouseSide::Right);
                     }
                     _ => {}
                 }

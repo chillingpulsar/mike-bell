@@ -12,8 +12,8 @@ use std::sync::{Mutex, OnceLock};
 
 enum PlayCmd { Mouse(String, f32), Keyboard(String, f32) }
 
-static PREFS: Mutex<(String, String, f32, f32)> =
-    Mutex::new((String::new(), String::new(), 100.0, 100.0));
+static PREFS: Mutex<(String, String, String, f32, f32, f32)> =
+    Mutex::new((String::new(), String::new(), String::new(), 100.0, 100.0, 100.0));
 static INIT_DONE: AtomicBool = AtomicBool::new(false);
 static TX: OnceLock<std::sync::mpsc::SyncSender<PlayCmd>> = OnceLock::new();
 
@@ -43,22 +43,50 @@ pub fn init() {
     });
 }
 
-pub fn set_sound_prefs(keyboard: String, mouse: String, keyboard_volume: f32, mouse_volume: f32) {
-    *PREFS.lock().unwrap() = (keyboard, mouse, keyboard_volume, mouse_volume);
+pub fn set_sound_prefs(
+    keyboard: String,
+    mouse_left: String,
+    mouse_right: String,
+    keyboard_volume: f32,
+    mouse_left_volume: f32,
+    mouse_right_volume: f32,
+) {
+    *PREFS.lock().unwrap() = (
+        keyboard,
+        mouse_left,
+        mouse_right,
+        keyboard_volume,
+        mouse_left_volume,
+        mouse_right_volume,
+    );
 }
 
-fn prefs() -> (String, String, f32, f32) { PREFS.lock().unwrap().clone() }
+fn prefs() -> (String, String, String, f32, f32, f32) {
+    PREFS.lock().unwrap().clone()
+}
 
-pub fn try_play_mouse() {
+#[derive(Clone, Copy)]
+pub enum MouseSide {
+    Left,
+    Right,
+}
+
+pub fn try_play_mouse(side: MouseSide) {
     let Some(tx) = TX.get() else { return };
-    let (_, m, _, mv) = prefs();
-    if m.is_empty() || m == "off" { return; }
-    let _ = tx.try_send(PlayCmd::Mouse(m, mv));
+    let (_, ml, mr, _, mlv, mrv) = prefs();
+    let (id, vol) = match side {
+        MouseSide::Left => (ml, mlv),
+        MouseSide::Right => (mr, mrv),
+    };
+    if id.is_empty() || id == "off" {
+        return;
+    }
+    let _ = tx.try_send(PlayCmd::Mouse(id, vol));
 }
 
 pub fn try_play_keyboard() {
     let Some(tx) = TX.get() else { return };
-    let (k, _, kv, _) = prefs();
+    let (k, _, _, kv, _, _) = prefs();
     if k.is_empty() || k == "off" { return; }
     let _ = tx.try_send(PlayCmd::Keyboard(k, kv));
 }

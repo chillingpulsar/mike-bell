@@ -8,6 +8,9 @@
   import type { SoundIds } from "$lib/types";
   import LetsConnect from "$lib/components/externals/lets-connect/lets-connect.svelte";
   import SoundPicker from "./(components)/(sound-picker)/sound-picker.svelte";
+  import * as Popover from "$lib/components/internals/popover/index";
+  import { buttonVariants } from "$lib/components/internals/button";
+  import IconSlidersHorizontal from "phosphor-svelte/lib/SlidersHorizontalIcon";
 
   let soundList: { id: SoundIds; name: string }[] = [
     { id: "off", name: "Off" },
@@ -31,8 +34,10 @@
     { id: "moss", name: "Moss" },
   ];
 
-  let selectedMouseSoundId = $state<SoundIds>("off");
-  let selectedMouseVolume = $state(80);
+  let selectedLeftSoundId = $state<SoundIds>("off");
+  let selectedLeftSoundVolume = $state(80);
+  let selectedRightSoundId = $state<SoundIds>("off");
+  let selectedRightSoundVolume = $state(80);
 
   let selectedKeyboardSoundId = $state<SoundIds>("off");
   let selectedKeyboardVolume = $state(80);
@@ -46,9 +51,13 @@
   };
 
   const onMouseDownCapture = (e: MouseEvent) => {
-    if (selectedMouseSoundId === "off") return;
-    if (e.button !== 0) return;
-    playMouse(selectedMouseSoundId, selectedMouseVolume);
+    if (e.button === 0) {
+      if (selectedLeftSoundId === "off") return;
+      playMouse(selectedLeftSoundId, selectedLeftSoundVolume);
+    } else if (e.button === 2) {
+      if (selectedRightSoundId === "off") return;
+      playMouse(selectedRightSoundId, selectedRightSoundVolume);
+    }
   };
 
   /** Tauri: native rodio output (Web Audio is muted when the webview isn’t key). */
@@ -56,9 +65,11 @@
     if (!isTauri()) return;
     void invoke("set_sound_prefs", {
       keyboard: selectedKeyboardSoundId,
-      mouse: selectedMouseSoundId,
+      mouseLeft: selectedLeftSoundId,
+      mouseRight: selectedRightSoundId,
       keyboardVolume: selectedKeyboardVolume,
-      mouseVolume: selectedMouseVolume,
+      mouseLeftVolume: selectedLeftSoundVolume,
+      mouseRightVolume: selectedRightSoundVolume,
     });
   });
 
@@ -91,19 +102,54 @@
   </header>
 
   <section class="flex flex-col gap-4 rounded-lg p-6 bg-secondary">
-    <SoundPicker
-      title="KEYBOARD SOUNDS"
-      {soundList}
-      bind:selectedId={selectedKeyboardSoundId}
-      bind:volumeValue={selectedKeyboardVolume}
-    />
+    <Popover.Root>
+      <Popover.Trigger
+        class={buttonVariants({
+          variant: "outline",
+          class:
+            "text-xs font-medium tracking-wider text-muted-foreground flex justify-between items-center",
+        })}
+      >
+        Keyboard Configuration
+        <IconSlidersHorizontal />
+      </Popover.Trigger>
+      <Popover.Content>
+        <SoundPicker
+          title="KEYBOARD SOUNDS"
+          {soundList}
+          bind:selectedId={selectedKeyboardSoundId}
+          bind:volumeValue={selectedKeyboardVolume}
+        />
+      </Popover.Content>
+    </Popover.Root>
 
-    <SoundPicker
-      title="MOUSE SOUNDS"
-      {soundList}
-      bind:selectedId={selectedMouseSoundId}
-      bind:volumeValue={selectedMouseVolume}
-    />
+    <Popover.Root>
+      <Popover.Trigger
+        class={buttonVariants({
+          variant: "outline",
+          class:
+            "text-xs font-medium tracking-wider text-muted-foreground flex justify-between items-center",
+        })}
+      >
+        Mouse Configuration
+        <IconSlidersHorizontal />
+      </Popover.Trigger>
+      <Popover.Content>
+        <SoundPicker
+          title="LEFT CLICK"
+          {soundList}
+          bind:selectedId={selectedLeftSoundId}
+          bind:volumeValue={selectedLeftSoundVolume}
+        />
+
+        <SoundPicker
+          title="RIGHT CLICK"
+          {soundList}
+          bind:selectedId={selectedRightSoundId}
+          bind:volumeValue={selectedRightSoundVolume}
+        />
+      </Popover.Content>
+    </Popover.Root>
   </section>
 
   <section class="flex flex-col gap-4 rounded-lg p-6 bg-secondary">

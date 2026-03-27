@@ -18,16 +18,33 @@ fn greet(name: &str) -> String {
 #[tauri::command]
 fn set_sound_prefs(
     keyboard: String,
-    mouse: String,
+    mouse_left: String,
+    mouse_right: String,
     keyboard_volume: f32,
-    mouse_volume: f32,
+    mouse_left_volume: f32,
+    mouse_right_volume: f32,
 ) {
-    desktop_audio::set_sound_prefs(keyboard, mouse, keyboard_volume, mouse_volume);
+    desktop_audio::set_sound_prefs(
+        keyboard,
+        mouse_left,
+        mouse_right,
+        keyboard_volume,
+        mouse_left_volume,
+        mouse_right_volume,
+    );
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 #[tauri::command]
-fn set_sound_prefs(_keyboard: String, _mouse: String, _keyboard_volume: f32, _mouse_volume: f32) {}
+fn set_sound_prefs(
+    _keyboard: String,
+    _mouse_left: String,
+    _mouse_right: String,
+    _keyboard_volume: f32,
+    _mouse_left_volume: f32,
+    _mouse_right_volume: f32,
+) {
+}
 
 /// Re-show macOS Accessibility / Input Monitoring prompts (no-op on other OS).
 /// Must run on the main thread; `invoke` may call from a worker, so we always dispatch.
