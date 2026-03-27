@@ -3,6 +3,8 @@
 //! filtered noise bursts, and biquad filters — played through rodio/CPAL so sound
 //! continues when the WKWebView is not key.
 
+use crate::keyboard_group::KeyboardGroup;
+use crate::keyboard_prefs::KeyboardGroupsPayload;
 use rodio::buffer::SamplesBuffer;
 use rodio::{OutputStream, Sink};
 use std::sync::atomic::{AtomicU32, AtomicBool, Ordering};
@@ -12,8 +14,14 @@ use std::sync::{Mutex, OnceLock};
 
 enum PlayCmd { Mouse(String, f32), Keyboard(String, f32) }
 
-static PREFS: Mutex<(String, String, String, f32, f32, f32)> =
-    Mutex::new((String::new(), String::new(), String::new(), 100.0, 100.0, 100.0));
+static KEYBOARD_PREFS: Mutex<KeyboardGroupsPayload> =
+    Mutex::new(KeyboardGroupsPayload::default_off());
+static MOUSE_PREFS: Mutex<(String, String, f32, f32)> = Mutex::new((
+    String::new(),
+    String::new(),
+    100.0,
+    100.0,
+));
 static INIT_DONE: AtomicBool = AtomicBool::new(false);
 static TX: OnceLock<std::sync::mpsc::SyncSender<PlayCmd>> = OnceLock::new();
 
@@ -44,25 +52,23 @@ pub fn init() {
 }
 
 pub fn set_sound_prefs(
-    keyboard: String,
+    keyboard: KeyboardGroupsPayload,
     mouse_left: String,
     mouse_right: String,
-    keyboard_volume: f32,
     mouse_left_volume: f32,
     mouse_right_volume: f32,
 ) {
-    *PREFS.lock().unwrap() = (
-        keyboard,
+    *KEYBOARD_PREFS.lock().unwrap() = keyboard;
+    *MOUSE_PREFS.lock().unwrap() = (
         mouse_left,
         mouse_right,
-        keyboard_volume,
         mouse_left_volume,
         mouse_right_volume,
     );
 }
 
-fn prefs() -> (String, String, String, f32, f32, f32) {
-    PREFS.lock().unwrap().clone()
+fn mouse_prefs() -> (String, String, f32, f32) {
+    MOUSE_PREFS.lock().unwrap().clone()
 }
 
 #[derive(Clone, Copy)]
@@ -73,7 +79,7 @@ pub enum MouseSide {
 
 pub fn try_play_mouse(side: MouseSide) {
     let Some(tx) = TX.get() else { return };
-    let (_, ml, mr, _, mlv, mrv) = prefs();
+    let (ml, mr, mlv, mrv) = mouse_prefs();
     let (id, vol) = match side {
         MouseSide::Left => (ml, mlv),
         MouseSide::Right => (mr, mrv),
@@ -84,11 +90,25 @@ pub fn try_play_mouse(side: MouseSide) {
     let _ = tx.try_send(PlayCmd::Mouse(id, vol));
 }
 
-pub fn try_play_keyboard() {
+pub fn try_play_keyboard(group: KeyboardGroup) {
     let Some(tx) = TX.get() else { return };
-    let (k, _, _, kv, _, _) = prefs();
-    if k.is_empty() || k == "off" { return; }
-    let _ = tx.try_send(PlayCmd::Keyboard(k, kv));
+    let prefs = KEYBOARD_PREFS.lock().unwrap();
+    let b = match group {
+        KeyboardGroup::Letters => &prefs.letters,
+        KeyboardGroup::Numbers => &prefs.numbers,
+        KeyboardGroup::FunctionKeys => &prefs.function_keys,
+        KeyboardGroup::Modifiers => &prefs.modifiers,
+        KeyboardGroup::SpaceEnter => &prefs.space_enter,
+        KeyboardGroup::TabEscape => &prefs.tab_escape,
+        KeyboardGroup::Navigation => &prefs.navigation,
+        KeyboardGroup::Punctuation => &prefs.punctuation,
+    };
+    let id = &b.sound;
+    let vol = b.volume;
+    if id.is_empty() || id == "off" {
+        return;
+    }
+    let _ = tx.try_send(PlayCmd::Keyboard(id.clone(), vol));
 }
 
 // ── Synthesis primitives ─────────────────────────────────────────────────────

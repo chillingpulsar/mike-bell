@@ -2,14 +2,13 @@
 //! macOS: direct CGEventTap (avoids rdev's TIS crash on modern macOS).
 //! Linux/Windows: rdev.
 
-use crate::desktop_audio;
-
 // ---------------------------------------------------------------------------
 // macOS – lightweight CGEventTap, no key-name resolution
 // ---------------------------------------------------------------------------
 #[cfg(target_os = "macos")]
 mod platform {
-    use super::desktop_audio;
+    use crate::desktop_audio;
+    use crate::keyboard_group;
     use std::os::raw::c_void;
     use std::ptr;
 
@@ -26,10 +25,6 @@ mod platform {
     const FLAG_COMMAND: u64 = 1 << 20;
     const FLAG_CONTROL: u64 = 1 << 18;
     const FLAG_ALT: u64 = 1 << 19;
-
-    // Keycodes we skip
-    const TAB: i64 = 48;
-    const ESCAPE: i64 = 53;
 
     // Event mask: mouse buttons + key down
     const EVENT_MASK: u64 =
@@ -81,14 +76,14 @@ mod platform {
                     return event;
                 }
                 let keycode = CGEventGetIntegerValueField(event, FIELD_KEYCODE);
-                if keycode == TAB || keycode == ESCAPE {
-                    return event;
-                }
+                let group = keyboard_group::from_mac_keycode(keycode);
                 let flags = CGEventGetFlags(event);
-                if flags & (FLAG_COMMAND | FLAG_CONTROL | FLAG_ALT) != 0 {
+                if group != keyboard_group::KeyboardGroup::Modifiers
+                    && flags & (FLAG_COMMAND | FLAG_CONTROL | FLAG_ALT) != 0
+                {
                     return event;
                 }
-                desktop_audio::try_play_keyboard();
+                desktop_audio::try_play_keyboard(group);
             }
             _ => {}
         }
@@ -121,7 +116,8 @@ mod platform {
 // ---------------------------------------------------------------------------
 #[cfg(not(target_os = "macos"))]
 mod platform {
-    use super::desktop_audio;
+    use crate::desktop_audio;
+    use crate::keyboard_group;
     use rdev::{listen, Button, Event, EventType, Key};
     use std::time::{Duration, Instant};
 
@@ -151,20 +147,25 @@ mod platform {
         }
     }
 
-    fn apply_modifier_key(mods: &mut ModifierState, key: Key, down: bool) -> bool {
+    fn apply_modifier_key(mods: &mut ModifierState, key: Key, down: bool) {
         match key {
-            Key::ControlLeft | Key::ControlRight => { mods.ctrl = down; true }
-            Key::MetaLeft | Key::MetaRight => { mods.meta = down; true }
-            Key::Alt | Key::AltGr => { mods.alt = down; true }
-            Key::ShiftLeft | Key::ShiftRight => true,
-            _ => false,
+            Key::ControlLeft | Key::ControlRight => mods.ctrl = down,
+            Key::MetaLeft | Key::MetaRight => mods.meta = down,
+            Key::Alt | Key::AltGr => mods.alt = down,
+            Key::ShiftLeft | Key::ShiftRight => {}
+            _ => {}
         }
     }
 
     fn should_play(key: Key, mods: &ModifierState, repeat: &mut RepeatFilter) -> bool {
-        if matches!(key, Key::Tab | Key::Escape) { return false; }
-        if mods.ctrl || mods.meta || mods.alt { return false; }
-        if repeat.should_skip_repeat(key) { return false; }
+        if repeat.should_skip_repeat(key) {
+            return false;
+        }
+        let group = keyboard_group::from_rdev_key(key);
+        if group != keyboard_group::KeyboardGroup::Modifiers && (mods.ctrl || mods.meta || mods.alt)
+        {
+            return false;
+        }
         true
     }
 
@@ -176,12 +177,14 @@ mod platform {
             if let Err(e) = listen(move |event: Event| {
                 match event.event_type {
                     EventType::KeyPress(key) => {
-                        if apply_modifier_key(&mut mods, key, true) { return; }
-                        if !should_play(key, &mods, &mut repeat) { return; }
-                        desktop_audio::try_play_keyboard();
+                        apply_modifier_key(&mut mods, key, true);
+                        if !should_play(key, &mods, &mut repeat) {
+                            return;
+                        }
+                        desktop_audio::try_play_keyboard(keyboard_group::from_rdev_key(key));
                     }
                     EventType::KeyRelease(key) => {
-                        let _ = apply_modifier_key(&mut mods, key, false);
+                        apply_modifier_key(&mut mods, key, false);
                     }
                     EventType::ButtonPress(Button::Left) => {
                         desktop_audio::try_play_mouse(desktop_audio::MouseSide::Left);

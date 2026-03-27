@@ -4,6 +4,11 @@ mod desktop_audio;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod global_listen;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+mod keyboard_group;
+
+mod keyboard_prefs;
+
 #[cfg(target_os = "macos")]
 mod macos_access;
 
@@ -17,18 +22,16 @@ fn greet(name: &str) -> String {
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 fn set_sound_prefs(
-    keyboard: String,
+    keyboard_groups: keyboard_prefs::KeyboardGroupsPayload,
     mouse_left: String,
     mouse_right: String,
-    keyboard_volume: f32,
     mouse_left_volume: f32,
     mouse_right_volume: f32,
 ) {
     desktop_audio::set_sound_prefs(
-        keyboard,
+        keyboard_groups,
         mouse_left,
         mouse_right,
-        keyboard_volume,
         mouse_left_volume,
         mouse_right_volume,
     );
@@ -37,10 +40,9 @@ fn set_sound_prefs(
 #[cfg(any(target_os = "android", target_os = "ios"))]
 #[tauri::command]
 fn set_sound_prefs(
-    _keyboard: String,
+    _keyboard_groups: keyboard_prefs::KeyboardGroupsPayload,
     _mouse_left: String,
     _mouse_right: String,
-    _keyboard_volume: f32,
     _mouse_left_volume: f32,
     _mouse_right_volume: f32,
 ) {

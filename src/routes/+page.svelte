@@ -6,11 +6,20 @@
   import DarkMode from "$lib/components/externals/dark-mode/dark-mode.svelte";
   import { ModeWatcher } from "mode-watcher";
   import type { SoundIds } from "$lib/types";
+  import {
+    DEFAULT_KEYBOARD_GROUP_PREFS,
+    KEYBOARD_GROUP_LABELS,
+    KEYBOARD_GROUP_ORDER,
+    keyboardGroupFromCode,
+    keyboardGroupsInvokePayload,
+    type KeyboardGroupId,
+  } from "$lib/keyboard-groups";
   import LetsConnect from "$lib/components/externals/lets-connect/lets-connect.svelte";
   import SoundPicker from "./(components)/(sound-picker)/sound-picker.svelte";
   import * as Popover from "$lib/components/internals/popover/index";
   import { buttonVariants } from "$lib/components/internals/button";
   import IconSlidersHorizontal from "phosphor-svelte/lib/SlidersHorizontalIcon";
+  import { ScrollArea } from "$lib/components/internals/scroll-area/index";
 
   let soundList: { id: SoundIds; name: string }[] = [
     { id: "off", name: "Off" },
@@ -39,15 +48,27 @@
   let selectedRightSoundId = $state<SoundIds>("off");
   let selectedRightSoundVolume = $state(80);
 
-  let selectedKeyboardSoundId = $state<SoundIds>("off");
-  let selectedKeyboardVolume = $state(80);
+  let keyboardPrefs = $state<
+    Record<KeyboardGroupId, { sound: SoundIds; volume: number }>
+  >(structuredClone(DEFAULT_KEYBOARD_GROUP_PREFS));
 
   const keyboardSoundCapture = (e: KeyboardEvent) => {
-    if (selectedKeyboardSoundId === "off") return;
     if (e.repeat) return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === "Tab" || e.key === "Escape") return;
-    playKeyboard(selectedKeyboardSoundId, selectedKeyboardVolume);
+    const group = keyboardGroupFromCode(e.code);
+    const pref = keyboardPrefs[group];
+    if (pref.sound === "off") return;
+
+    const isModifierPhysicalKey =
+      e.code.startsWith("Control") ||
+      e.code.startsWith("Alt") ||
+      e.code.startsWith("Meta") ||
+      e.code.startsWith("Shift") ||
+      e.code === "CapsLock" ||
+      e.code === "Fn";
+
+    if (!isModifierPhysicalKey && (e.metaKey || e.ctrlKey || e.altKey)) return;
+
+    playKeyboard(pref.sound, pref.volume);
   };
 
   const onMouseDownCapture = (e: MouseEvent) => {
@@ -64,10 +85,9 @@
   $effect(() => {
     if (!isTauri()) return;
     void invoke("set_sound_prefs", {
-      keyboard: selectedKeyboardSoundId,
+      keyboardGroups: keyboardGroupsInvokePayload(keyboardPrefs),
       mouseLeft: selectedLeftSoundId,
       mouseRight: selectedRightSoundId,
-      keyboardVolume: selectedKeyboardVolume,
       mouseLeftVolume: selectedLeftSoundVolume,
       mouseRightVolume: selectedRightSoundVolume,
     });
@@ -113,13 +133,25 @@
         Keyboard Configuration
         <IconSlidersHorizontal />
       </Popover.Trigger>
-      <Popover.Content>
-        <SoundPicker
-          title="KEYBOARD SOUNDS"
-          {soundList}
-          bind:selectedId={selectedKeyboardSoundId}
-          bind:volumeValue={selectedKeyboardVolume}
-        />
+      <Popover.Content class="p-0">
+        <ScrollArea class="h-[340px] pr-4 p-2.5">
+          <div class="flex flex-col gap-2">
+            <p
+              class="text-[0.65rem] leading-snug text-muted-foreground px-0.5 pb-1"
+            >
+              Each physical key group can use its own profile—defaults are a
+              mixed “real board” blend.
+            </p>
+            {#each KEYBOARD_GROUP_ORDER as gid (gid)}
+              <SoundPicker
+                title={KEYBOARD_GROUP_LABELS[gid]}
+                {soundList}
+                bind:selectedId={keyboardPrefs[gid].sound}
+                bind:volumeValue={keyboardPrefs[gid].volume}
+              />
+            {/each}
+          </div>
+        </ScrollArea>
       </Popover.Content>
     </Popover.Root>
 
