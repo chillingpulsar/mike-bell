@@ -198,6 +198,6 @@
   </section>
 
   <footer class="flex justify-end">
-    <p class="text-xs text-muted-foreground">Version 0.1.1 Beta</p>
+    <p class="text-xs text-muted-foreground">Version 0.1.2 Beta</p>
   </footer>
 </main>
