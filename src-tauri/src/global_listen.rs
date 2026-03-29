@@ -1,6 +1,9 @@
 //! System-wide keyboard and mouse listener.
 //! macOS: direct CGEventTap (avoids rdev's TIS crash on modern macOS).
 //! Linux/Windows: rdev.
+//!
+//! On macOS, CoreGraphics is a C API: `unsafe` is required for FFI and cannot be “removed,”
+//! only localized and documented. The hot path is still native calls into the system.
 
 // ---------------------------------------------------------------------------
 // macOS – lightweight CGEventTap, no key-name resolution
@@ -33,6 +36,20 @@ mod platform {
     type Ptr = *mut c_void;
 
     type TapCb = unsafe extern "C" fn(Ptr, u32, Ptr, Ptr) -> Ptr;
+
+    /// Reads key-down fields from a `CGEventRef`. Returns `None` if `event` is null.
+    ///
+    /// SAFETY: When `Some`, `event` must remain valid for the duration of the calls (same as
+    /// Apple's contract for `CGEventTap` callbacks).
+    unsafe fn key_down_fields(event: Ptr) -> Option<(i64, i64, u64)> {
+        if event.is_null() {
+            return None;
+        }
+        let autorepeat = CGEventGetIntegerValueField(event, FIELD_AUTOREPEAT);
+        let keycode = CGEventGetIntegerValueField(event, FIELD_KEYCODE);
+        let flags = CGEventGetFlags(event);
+        Some((autorepeat, keycode, flags))
+    }
 
     #[link(name = "CoreGraphics", kind = "framework")]
     extern "C" {
@@ -72,12 +89,13 @@ mod platform {
                 desktop_audio::try_play_mouse(desktop_audio::MouseSide::Right);
             }
             KEY_DOWN => {
-                if CGEventGetIntegerValueField(event, FIELD_AUTOREPEAT) != 0 {
+                let Some((autorepeat, keycode, flags)) = key_down_fields(event) else {
+                    return event;
+                };
+                if autorepeat != 0 {
                     return event;
                 }
-                let keycode = CGEventGetIntegerValueField(event, FIELD_KEYCODE);
                 let group = keyboard_group::from_mac_keycode(keycode);
-                let flags = CGEventGetFlags(event);
                 if group != keyboard_group::KeyboardGroup::Modifiers
                     && flags & (FLAG_COMMAND | FLAG_CONTROL | FLAG_ALT) != 0
                 {
@@ -91,22 +109,28 @@ mod platform {
     }
 
     pub fn spawn() {
-        std::thread::spawn(|| unsafe {
-            // CGEventTapLocation::HID = 0, kCGHeadInsertEventTap = 0, ListenOnly = 1
-            let tap = CGEventTapCreate(0, 0, 1, EVENT_MASK, tap_callback, ptr::null_mut());
-            if tap.is_null() {
-                eprintln!("[mikebell] CGEventTapCreate failed – grant Accessibility + Input Monitoring");
-                return;
+        std::thread::spawn(|| {
+            // SAFETY: CoreGraphics / CoreFoundation setup for a dedicated thread run loop.
+            // `tap` is non-null before use; `kCFRunLoopCommonModes` is a valid static mode pointer.
+            unsafe {
+                // CGEventTapLocation::HID = 0, kCGHeadInsertEventTap = 0, ListenOnly = 1
+                let tap = CGEventTapCreate(0, 0, 1, EVENT_MASK, tap_callback, ptr::null_mut());
+                if tap.is_null() {
+                    eprintln!(
+                        "[mikebell] CGEventTapCreate failed – grant Accessibility + Input Monitoring"
+                    );
+                    return;
+                }
+                let source = CFMachPortCreateRunLoopSource(ptr::null_mut(), tap, 0);
+                if source.is_null() {
+                    eprintln!("[mikebell] CFMachPortCreateRunLoopSource failed");
+                    return;
+                }
+                let rl = CFRunLoopGetCurrent();
+                CFRunLoopAddSource(rl, source, kCFRunLoopCommonModes);
+                CGEventTapEnable(tap, true);
+                CFRunLoopRun();
             }
-            let source = CFMachPortCreateRunLoopSource(ptr::null_mut(), tap, 0);
-            if source.is_null() {
-                eprintln!("[mikebell] CFMachPortCreateRunLoopSource failed");
-                return;
-            }
-            let rl = CFRunLoopGetCurrent();
-            CFRunLoopAddSource(rl, source, kCFRunLoopCommonModes);
-            CGEventTapEnable(tap, true);
-            CFRunLoopRun();
         });
     }
 }

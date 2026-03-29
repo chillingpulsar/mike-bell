@@ -52,6 +52,12 @@ export const DEFAULT_KEYBOARD_GROUP_PREFS: Record<
   punctuation: { sound: "bubble", volume: 76 },
 };
 
+/** Default mouse button sounds (left = primary, right = context). */
+export const DEFAULT_MOUSE_PREFS = {
+  left: { sound: "classic" as SoundIds, volume: 80 },
+  right: { sound: "soft" as SoundIds, volume: 78 },
+} as const;
+
 /**
  * Map a physical key to a sound group. Prefer `event.code`; `key` is only for edge cases.
  */
