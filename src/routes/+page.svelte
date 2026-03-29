@@ -8,6 +8,7 @@
   import type { SoundIds } from "$lib/types";
   import {
     DEFAULT_KEYBOARD_GROUP_PREFS,
+    DEFAULT_MOUSE_PREFS,
     KEYBOARD_GROUP_LABELS,
     KEYBOARD_GROUP_ORDER,
     keyboardGroupFromCode,
@@ -43,10 +44,10 @@
     { id: "moss", name: "Moss" },
   ];
 
-  let selectedLeftSoundId = $state<SoundIds>("off");
-  let selectedLeftSoundVolume = $state(80);
-  let selectedRightSoundId = $state<SoundIds>("off");
-  let selectedRightSoundVolume = $state(80);
+  let selectedLeftSoundId = $state<SoundIds>(DEFAULT_MOUSE_PREFS.left.sound);
+  let selectedLeftSoundVolume = $state(DEFAULT_MOUSE_PREFS.left.volume);
+  let selectedRightSoundId = $state<SoundIds>(DEFAULT_MOUSE_PREFS.right.sound);
+  let selectedRightSoundVolume = $state(DEFAULT_MOUSE_PREFS.right.volume);
 
   let keyboardPrefs = $state<
     Record<KeyboardGroupId, { sound: SoundIds; volume: number }>
