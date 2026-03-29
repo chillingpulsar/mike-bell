@@ -24,11 +24,10 @@ pub fn request_global_input_permissions() {
     let prompt_on = CFBoolean::true_value();
     let options = CFDictionary::from_CFType_pairs(&[(key, prompt_on)]);
 
+    // SAFETY: `options` is a valid CFDictionary from core-foundation; these are Apple's
+    // documented entry points for permission prompts (no retained objects cross the boundary).
     unsafe {
         let _already_trusted = AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef());
-    }
-
-    unsafe {
         if CGPreflightListenEventAccess() == 0 {
             let _ = CGRequestListenEventAccess();
         }
