@@ -24,6 +24,7 @@
 	import * as Select from '$lib/components/internals/select/index';
 	import { Input } from '$lib/components/internals/input/index';
 	import IconSlidersHorizontal from 'phosphor-svelte/lib/SlidersHorizontalIcon';
+	import IconPower from 'phosphor-svelte/lib/PowerIcon';
 	import IconFloppyDisk from 'phosphor-svelte/lib/FloppyDiskIcon';
 	import IconTrash from 'phosphor-svelte/lib/TrashIcon';
 	import IconSpeakerSimpleHigh from 'phosphor-svelte/lib/SpeakerSimpleHighIcon';
@@ -53,6 +54,14 @@
 		{ id: 'cashmere', name: 'Cashmere' },
 		{ id: 'moss', name: 'Moss' }
 	];
+
+	let autoStartEnabled = $state(false);
+
+	function toggleAutoStart() {
+		if (!isTauri()) return;
+		autoStartEnabled = !autoStartEnabled;
+		void invoke('set_autostart', { enabled: autoStartEnabled });
+	}
 
 	let masterVolume = $state(100);
 	let isMuted = $state(false);
@@ -130,7 +139,6 @@
 	// Persist preferences reactively whenever they change
 	$effect(() => {
 		if (!prefsLoaded) return;
-		// Read all reactive deps
 		const prefs = {
 			keyboardGroups: keyboardPrefs,
 			mouseLeft: { sound: selectedLeftSoundId, volume: selectedLeftSoundVolume },
@@ -367,6 +375,21 @@
 
 	<section>
 		<LetsConnect />
+	</section>
+
+	<section class="flex items-center justify-between rounded-lg bg-secondary p-4">
+		<div class="flex items-center gap-2">
+			<IconPower class="h-4 w-4 text-muted-foreground" />
+			<p class="text-xs font-medium tracking-wider text-muted-foreground">Auto-start on login</p>
+		</div>
+		<Button
+			variant={autoStartEnabled ? 'default' : 'outline'}
+			size="sm"
+			class="text-xs"
+			onclick={toggleAutoStart}
+		>
+			{autoStartEnabled ? 'Enabled' : 'Disabled'}
+		</Button>
 	</section>
 
 	<footer class="flex justify-end">
