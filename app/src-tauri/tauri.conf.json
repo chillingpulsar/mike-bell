@@ -14,9 +14,11 @@
 			{
 				"title": "mikebell",
 				"hiddenTitle": true,
-				"resizable": false,
+				"resizable": true,
 				"width": 400,
-				"height": 700
+				"height": 700,
+				"minWidth": 380,
+				"minHeight": 600
 			}
 		],
 		"security": {
