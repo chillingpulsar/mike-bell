@@ -42,6 +42,81 @@ fn set_sound_prefs(
 ) {
 }
 
+/// Save an uploaded custom sound file to the app's data directory.
+/// Returns the sound id (filename without extension) on success.
+#[tauri::command]
+fn upload_custom_sound(app: tauri::AppHandle, name: String, data: Vec<u8>) -> Result<String, String> {
+    let allowed = [".wav", ".mp3", ".ogg"];
+    let lower = name.to_lowercase();
+    if !allowed.iter().any(|ext| lower.ends_with(ext)) {
+        return Err("Unsupported format. Use WAV, MP3, or OGG.".into());
+    }
+    if data.len() > 5 * 1024 * 1024 {
+        return Err("File too large. Maximum size is 5MB.".into());
+    }
+
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("custom_sounds");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+
+    let safe_name = name.replace(['/', '\\', '..'], "_");
+    let path = dir.join(&safe_name);
+    std::fs::write(&path, data).map_err(|e| e.to_string())?;
+
+    // Return the id (filename without extension)
+    let id = safe_name
+        .rsplit_once('.')
+        .map(|(stem, _)| stem.to_string())
+        .unwrap_or(safe_name);
+    Ok(id)
+}
+
+/// List all custom sound files in the app's data directory.
+#[tauri::command]
+fn list_custom_sounds(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("custom_sounds");
+    if !dir.exists() {
+        return Ok(vec![]);
+    }
+    let entries = std::fs::read_dir(&dir).map_err(|e| e.to_string())?;
+    let mut sounds = vec![];
+    for entry in entries {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.is_file() {
+            let name = path.file_name().unwrap().to_string_lossy().to_string();
+            let lower = name.to_lowercase();
+            if lower.ends_with(".wav") || lower.ends_with(".mp3") || lower.ends_with(".ogg") {
+                sounds.push(name);
+            }
+        }
+    }
+    sounds.sort();
+    Ok(sounds)
+}
+
+/// Get the full path to a custom sound file (for loading in the webview).
+#[tauri::command]
+fn get_custom_sound_path(app: tauri::AppHandle, filename: String) -> Result<String, String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("custom_sounds");
+    let path = dir.join(&filename);
+    if path.exists() {
+        Ok(path.to_string_lossy().to_string())
+    } else {
+        Err(format!("Custom sound not found: {}", filename))
+    }
+}
+
+/// Delete a custom sound file.
+#[tauri::command]
+fn delete_custom_sound(app: tauri::AppHandle, filename: String) -> Result<(), String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("custom_sounds");
+    let path = dir.join(&filename);
+    if path.exists() {
+        std::fs::remove_file(path).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 /// Toggle auto-start on login.
 #[tauri::command]
 fn set_autostart(app: tauri::AppHandle, enabled: bool) {
@@ -78,7 +153,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             prompt_global_input_access,
             set_sound_prefs,
-            set_autostart
+            set_autostart,
+            upload_custom_sound,
+            list_custom_sounds,
+            delete_custom_sound,
+            get_custom_sound_path
         ])
         .setup(|app| {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
