@@ -12,12 +12,6 @@ mod keyboard_prefs;
 #[cfg(target_os = "macos")]
 mod macos_access;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 /// Sync sound selections from the webview into the native audio + hook layer.
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
@@ -48,6 +42,18 @@ fn set_sound_prefs(
 ) {
 }
 
+/// Toggle auto-start on login.
+#[tauri::command]
+fn set_autostart(app: tauri::AppHandle, enabled: bool) {
+    use tauri_plugin_autostart::ManagerExt;
+    let autostart_manager = app.autostart();
+    if enabled {
+        let _ = autostart_manager.enable();
+    } else {
+        let _ = autostart_manager.disable();
+    }
+}
+
 /// Re-show macOS Accessibility / Input Monitoring prompts (no-op on other OS).
 /// Must run on the main thread; `invoke` may call from a worker, so we always dispatch.
 #[tauri::command]
@@ -64,10 +70,15 @@ fn prompt_global_input_access(app: tauri::AppHandle) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
         .invoke_handler(tauri::generate_handler![
-            greet,
             prompt_global_input_access,
-            set_sound_prefs
+            set_sound_prefs,
+            set_autostart
         ])
         .setup(|app| {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
