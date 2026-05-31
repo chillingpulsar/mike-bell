@@ -19,8 +19,11 @@
 	import LetsConnect from '$lib/components/externals/lets-connect/lets-connect.svelte';
 	import SoundPicker from './(components)/(sound-picker)/sound-picker.svelte';
 	import * as Popover from '$lib/components/internals/popover/index';
-	import { buttonVariants } from '$lib/components/internals/button';
+	import { buttonVariants, Button } from '$lib/components/internals/button';
 	import IconSlidersHorizontal from 'phosphor-svelte/lib/SlidersHorizontalIcon';
+	import IconSpeakerSimpleHigh from 'phosphor-svelte/lib/SpeakerSimpleHighIcon';
+	import IconSpeakerSimpleSlash from 'phosphor-svelte/lib/SpeakerSimpleSlashIcon';
+	import { Slider } from '$lib/components/internals/slider/index';
 	import { ScrollArea } from '$lib/components/internals/scroll-area/index';
 	import { onMount } from 'svelte';
 
@@ -46,6 +49,9 @@
 		{ id: 'moss', name: 'Moss' }
 	];
 
+	let masterVolume = $state(100);
+	let isMuted = $state(false);
+
 	let selectedLeftSoundId = $state<SoundIds>(DEFAULT_MOUSE_PREFS.left.sound);
 	let selectedLeftSoundVolume = $state(DEFAULT_MOUSE_PREFS.left.volume);
 	let selectedRightSoundId = $state<SoundIds>(DEFAULT_MOUSE_PREFS.right.sound);
@@ -54,6 +60,16 @@
 	let keyboardPrefs = $state<Record<KeyboardGroupId, { sound: SoundIds; volume: number }>>(
 		structuredClone(DEFAULT_KEYBOARD_GROUP_PREFS)
 	);
+
+	/** Effective volume: per-group volume * master volume * mute factor. */
+	function effectiveVolume(groupVolume: number): number {
+		if (isMuted) return 0;
+		return Math.round(groupVolume * (masterVolume / 100));
+	}
+
+	function toggleMute() {
+		isMuted = !isMuted;
+	}
 
 	// Prevent saving during initial load
 	let prefsLoaded = $state(false);
@@ -99,20 +115,20 @@
 
 		if (!isModifierPhysicalKey && (e.metaKey || e.ctrlKey || e.altKey)) return;
 
-		playKeyboard(pref.sound, pref.volume);
+		playKeyboard(pref.sound, effectiveVolume(pref.volume));
 	};
 
 	const onMouseDownCapture = (e: MouseEvent) => {
 		if (e.button === 0) {
 			if (selectedLeftSoundId === 'off') return;
-			playMouse(selectedLeftSoundId, selectedLeftSoundVolume);
+			playMouse(selectedLeftSoundId, effectiveVolume(selectedLeftSoundVolume));
 		} else if (e.button === 2) {
 			if (selectedRightSoundId === 'off') return;
-			playMouse(selectedRightSoundId, selectedRightSoundVolume);
+			playMouse(selectedRightSoundId, effectiveVolume(selectedRightSoundVolume));
 		}
 	};
 
-	/** Tauri: native rodio output (Web Audio is muted when the webview isn’t key). */
+	/** Tauri: native rodio output (Web Audio is muted when the webview isn't key). */
 	$effect(() => {
 		if (!isTauri()) return;
 		void invoke('set_sound_prefs', {
@@ -148,6 +164,31 @@
 		<p class="text-sm text-muted-foreground">
 			Tired of paid fancy sounds? Mike Bell is here to help.
 		</p>
+		<div class="mt-3 flex items-center gap-3">
+			<Button
+				variant="ghost"
+				size="icon"
+				class="h-8 w-8 shrink-0"
+				onclick={toggleMute}
+				title={isMuted ? 'Unmute' : 'Mute'}
+			>
+				{#if isMuted}
+					<IconSpeakerSimpleSlash class="h-4 w-4" />
+				{:else}
+					<IconSpeakerSimpleHigh class="h-4 w-4" />
+				{/if}
+			</Button>
+			<Slider
+				type="single"
+				bind:value={masterVolume}
+				max={100}
+				disabled={isMuted}
+				class="w-full max-w-48"
+			/>
+			<span class="w-8 text-right text-xs text-muted-foreground tabular-nums">
+				{isMuted ? '0' : masterVolume}%
+			</span>
+		</div>
 	</header>
 
 	<section class="flex flex-col gap-4 rounded-lg bg-secondary p-6">
@@ -166,7 +207,7 @@
 				<ScrollArea class="h-[340px] p-2.5 pr-4">
 					<div class="flex flex-col gap-2">
 						<p class="px-0.5 pb-1 text-[0.65rem] leading-snug text-muted-foreground">
-							Each physical key group can use its own profile—defaults are a mixed “real board”
+							Each physical key group can use its own profile—defaults are a mixed "real board"
 							blend.
 						</p>
 						{#each KEYBOARD_GROUP_ORDER as gid (gid)}
