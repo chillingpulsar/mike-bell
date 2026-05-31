@@ -808,6 +808,10 @@ export function playMouseMoss(volumePct = 100) {
 
 export function playKeyboard(id: SoundIds, volumePct = 100) {
 	if (id === 'off') return;
+	if (typeof id === 'string' && id.startsWith('custom:')) {
+		void playCustomSound(id.slice(7), volumePct);
+		return;
+	}
 	switch (id) {
 		case 'classic':
 			playKeyboardClassic(volumePct);
@@ -868,6 +872,10 @@ export function playKeyboard(id: SoundIds, volumePct = 100) {
 
 export function playMouse(id: SoundIds, volumePct = 100) {
 	if (id === 'off') return;
+	if (typeof id === 'string' && id.startsWith('custom:')) {
+		void playCustomSound(id.slice(7), volumePct);
+		return;
+	}
 	switch (id) {
 		case 'classic':
 			playMouseClassic(volumePct);
@@ -923,5 +931,26 @@ export function playMouse(id: SoundIds, volumePct = 100) {
 		case 'moss':
 			playMouseMoss(volumePct);
 			break;
+	}
+}
+
+/** Play a custom sound file by its filename. Loads via Tauri IPC. */
+async function playCustomSound(filename: string, volumePct: number) {
+	const c = ctx();
+	try {
+		const { invoke } = await import('@tauri-apps/api/core');
+		const filePath: string = await invoke('get_custom_sound_path', { filename });
+		const response = await fetch(`asset://localhost/${encodeURI(filePath)}`);
+		const arrayBuffer = await response.arrayBuffer();
+		const audioBuffer = await c.decodeAudioData(arrayBuffer);
+		const src = c.createBufferSource();
+		src.buffer = audioBuffer;
+		const g = c.createGain();
+		g.gain.value = clampVolumePct(volumePct) / 100;
+		src.connect(g);
+		g.connect(c.destination);
+		src.start();
+	} catch (e) {
+		console.error('Failed to play custom sound:', e);
 	}
 }
