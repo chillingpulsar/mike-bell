@@ -1,4 +1,4 @@
-export type SoundIds =
+export type BuiltinSoundIds =
 	| 'off'
 	| 'classic'
 	| 'soft'
@@ -18,3 +18,6 @@ export type SoundIds =
 	| 'honey'
 	| 'cashmere'
 	| 'moss';
+
+/** SoundIds can be a builtin id or a custom sound id (prefixed with "custom:"). */
+export type SoundIds = BuiltinSoundIds | `custom:${string}`;
