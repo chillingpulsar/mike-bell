@@ -12,12 +12,6 @@ mod keyboard_prefs;
 #[cfg(target_os = "macos")]
 mod macos_access;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 /// Sync sound selections from the webview into the native audio + hook layer.
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
@@ -64,8 +58,8 @@ fn prompt_global_input_access(app: tauri::AppHandle) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
-            greet,
             prompt_global_input_access,
             set_sound_prefs
         ])
