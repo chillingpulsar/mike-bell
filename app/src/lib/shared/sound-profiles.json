@@ -1,0 +1,621 @@
+{
+	"keyboard": {
+		"classic": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 720,
+					"end_hz": 180,
+					"ramp_s": 0.045,
+					"exp": true,
+					"dur_s": 0.08,
+					"peak": 0.22,
+					"env_s": 0.07
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.022, "peak": 0.09, "center_hz": 2400 }]
+		},
+		"soft": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 420,
+					"end_hz": 120,
+					"ramp_s": 0.06,
+					"exp": true,
+					"dur_s": 0.1,
+					"peak": 0.18,
+					"env_s": 0.09
+				}
+			],
+			"noise_bursts": []
+		},
+		"bubble": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 380,
+					"end_hz": 920,
+					"ramp_s": 0.035,
+					"exp": true,
+					"dur_s": 0.06,
+					"peak": 0.2,
+					"env_s": 0.055
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.012, "peak": 0.04, "center_hz": 1800 }]
+		},
+		"vault": {
+			"oscillators": [
+				{
+					"wave": "sawtooth",
+					"start_hz": 95,
+					"end_hz": 45,
+					"ramp_s": 0.05,
+					"exp": true,
+					"dur_s": 0.13,
+					"peak": 0.12,
+					"env_s": 0.12,
+					"filter": { "type": "lp_sweep", "start_hz": 420, "end_hz": 120, "ramp_s": 0.08, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.003, "dur_s": 0.018, "peak": 0.06, "center_hz": 600 }]
+		},
+		"dew": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 880,
+					"end_hz": 633.6,
+					"ramp_s": 0.04,
+					"exp": true,
+					"dur_s": 0.11,
+					"peak": 0.09,
+					"env_s": 0.1
+				},
+				{
+					"wave": "sine",
+					"start_hz": 883,
+					"end_hz": 635.76,
+					"ramp_s": 0.04,
+					"exp": true,
+					"dur_s": 0.11,
+					"peak": 0.09,
+					"env_s": 0.1
+				}
+			],
+			"noise_bursts": []
+		},
+		"ink": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 340,
+					"end_hz": 95,
+					"ramp_s": 0.045,
+					"exp": true,
+					"dur_s": 0.085,
+					"peak": 0.15,
+					"env_s": 0.08
+				}
+			],
+			"noise_bursts": []
+		},
+		"spark": {
+			"oscillators": [
+				{
+					"wave": "square",
+					"start_hz": 1800,
+					"end_hz": 1800,
+					"ramp_s": 0.028,
+					"exp": true,
+					"dur_s": 0.028,
+					"peak": 0.045,
+					"env_s": 0.022,
+					"filter": { "type": "bp", "freq": 3800, "q": 1.1 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.007, "peak": 0.04, "center_hz": 4200 }]
+		},
+		"velvet": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 480,
+					"end_hz": 360,
+					"ramp_s": 0.055,
+					"exp": false,
+					"dur_s": 0.09,
+					"peak": 0.1,
+					"env_s": 0.085
+				}
+			],
+			"noise_bursts": []
+		},
+		"wool": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 228,
+					"end_hz": 118,
+					"ramp_s": 0.055,
+					"exp": true,
+					"dur_s": 0.1,
+					"peak": 0.14,
+					"env_s": 0.095,
+					"filter": { "type": "lp", "freq": 520, "q": 0.85 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.004, "dur_s": 0.014, "peak": 0.032, "center_hz": 780 }]
+		},
+		"cocoa": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 300,
+					"end_hz": 92,
+					"ramp_s": 0.048,
+					"exp": true,
+					"dur_s": 0.092,
+					"peak": 0.15,
+					"env_s": 0.088,
+					"filter": { "type": "lp_sweep", "start_hz": 480, "end_hz": 160, "ramp_s": 0.07, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.018, "peak": 0.055, "center_hz": 1250 }]
+		},
+		"plush": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 395,
+					"end_hz": 302,
+					"ramp_s": 0.072,
+					"exp": false,
+					"dur_s": 0.115,
+					"peak": 0.085,
+					"env_s": 0.11
+				}
+			],
+			"noise_bursts": []
+		},
+		"thock": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 168,
+					"end_hz": 58,
+					"ramp_s": 0.052,
+					"exp": true,
+					"dur_s": 0.105,
+					"peak": 0.17,
+					"env_s": 0.1
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.001, "dur_s": 0.021, "peak": 0.072, "center_hz": 1580 }]
+		},
+		"cream": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 332,
+					"end_hz": 225.76,
+					"ramp_s": 0.042,
+					"exp": true,
+					"dur_s": 0.092,
+					"peak": 0.078,
+					"env_s": 0.088
+				},
+				{
+					"wave": "sine",
+					"start_hz": 336.5,
+					"end_hz": 228.82,
+					"ramp_s": 0.042,
+					"exp": true,
+					"dur_s": 0.092,
+					"peak": 0.078,
+					"env_s": 0.088
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.006, "dur_s": 0.01, "peak": 0.038, "center_hz": 2100 }]
+		},
+		"flannel": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 360,
+					"end_hz": 155,
+					"ramp_s": 0.04,
+					"exp": true,
+					"dur_s": 0.08,
+					"peak": 0.12,
+					"env_s": 0.075,
+					"filter": { "type": "bp", "freq": 1400, "q": 0.9 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.016, "peak": 0.048, "center_hz": 950 }]
+		},
+		"ember": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 275,
+					"end_hz": 118,
+					"ramp_s": 0.05,
+					"exp": true,
+					"dur_s": 0.095,
+					"peak": 0.13,
+					"env_s": 0.09
+				},
+				{
+					"wave": "sine",
+					"start_hz": 550,
+					"end_hz": 236,
+					"ramp_s": 0.04,
+					"exp": true,
+					"dur_s": 0.06,
+					"peak": 0.035,
+					"env_s": 0.055
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.002, "dur_s": 0.012, "peak": 0.04, "center_hz": 1400 }]
+		},
+		"honey": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 455,
+					"end_hz": 268,
+					"ramp_s": 0.065,
+					"exp": false,
+					"dur_s": 0.105,
+					"peak": 0.11,
+					"env_s": 0.1
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.008, "dur_s": 0.011, "peak": 0.034, "center_hz": 1650 }]
+		},
+		"cashmere": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 545,
+					"end_hz": 368,
+					"ramp_s": 0.038,
+					"exp": true,
+					"dur_s": 0.082,
+					"peak": 0.1,
+					"env_s": 0.078
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.006, "peak": 0.026, "center_hz": 3400 }]
+		},
+		"moss": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 215,
+					"end_hz": 78,
+					"ramp_s": 0.046,
+					"exp": true,
+					"dur_s": 0.115,
+					"peak": 0.14,
+					"env_s": 0.11,
+					"filter": { "type": "lp_sweep", "start_hz": 340, "end_hz": 95, "ramp_s": 0.085, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.003, "dur_s": 0.017, "peak": 0.052, "center_hz": 620 }]
+		}
+	},
+	"mouse": {
+		"classic": {
+			"oscillators": [
+				{
+					"wave": "square",
+					"start_hz": 1400,
+					"end_hz": 1400,
+					"ramp_s": 0.025,
+					"exp": true,
+					"dur_s": 0.025,
+					"peak": 0.06,
+					"env_s": 0.018,
+					"filter": { "type": "lp", "freq": 4800, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.008, "peak": 0.045, "center_hz": 3200 }]
+		},
+		"soft": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 650,
+					"end_hz": 320,
+					"ramp_s": 0.02,
+					"exp": true,
+					"dur_s": 0.05,
+					"peak": 0.14,
+					"env_s": 0.04
+				}
+			],
+			"noise_bursts": []
+		},
+		"bubble": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 520,
+					"end_hz": 1100,
+					"ramp_s": 0.022,
+					"exp": true,
+					"dur_s": 0.04,
+					"peak": 0.15,
+					"env_s": 0.038
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.006, "peak": 0.028, "center_hz": 2200 }]
+		},
+		"vault": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 130,
+					"end_hz": 55,
+					"ramp_s": 0.024,
+					"exp": true,
+					"dur_s": 0.05,
+					"peak": 0.14,
+					"env_s": 0.045,
+					"filter": { "type": "lp", "freq": 380, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.01, "peak": 0.05, "center_hz": 900 }]
+		},
+		"dew": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 1600,
+					"end_hz": 1100,
+					"ramp_s": 0.018,
+					"exp": true,
+					"dur_s": 0.05,
+					"peak": 0.11,
+					"env_s": 0.045
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.006, "peak": 0.022, "center_hz": 4500 }]
+		},
+		"ink": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 340,
+					"end_hz": 95,
+					"ramp_s": 0.028,
+					"exp": true,
+					"dur_s": 0.06,
+					"peak": 0.16,
+					"env_s": 0.055
+				}
+			],
+			"noise_bursts": []
+		},
+		"spark": {
+			"oscillators": [
+				{
+					"wave": "square",
+					"start_hz": 2200,
+					"end_hz": 2200,
+					"ramp_s": 0.015,
+					"exp": true,
+					"dur_s": 0.015,
+					"peak": 0.035,
+					"env_s": 0.012,
+					"filter": { "type": "bp", "freq": 4200, "q": 1.2 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.005, "peak": 0.03, "center_hz": 5000 }]
+		},
+		"velvet": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 480,
+					"end_hz": 380,
+					"ramp_s": 0.045,
+					"exp": false,
+					"dur_s": 0.075,
+					"peak": 0.09,
+					"env_s": 0.07
+				}
+			],
+			"noise_bursts": []
+		},
+		"wool": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 310,
+					"end_hz": 165,
+					"ramp_s": 0.032,
+					"exp": true,
+					"dur_s": 0.062,
+					"peak": 0.11,
+					"env_s": 0.058,
+					"filter": { "type": "lp", "freq": 640, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.002, "dur_s": 0.009, "peak": 0.024, "center_hz": 920 }]
+		},
+		"cocoa": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 380,
+					"end_hz": 145,
+					"ramp_s": 0.028,
+					"exp": true,
+					"dur_s": 0.055,
+					"peak": 0.13,
+					"env_s": 0.052,
+					"filter": {
+						"type": "lp_sweep",
+						"start_hz": 620,
+						"end_hz": 240,
+						"ramp_s": 0.038,
+						"q": 1.0
+					}
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.011, "peak": 0.042, "center_hz": 1600 }]
+		},
+		"plush": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 505,
+					"end_hz": 395,
+					"ramp_s": 0.048,
+					"exp": false,
+					"dur_s": 0.082,
+					"peak": 0.072,
+					"env_s": 0.078
+				}
+			],
+			"noise_bursts": []
+		},
+		"thock": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 205,
+					"end_hz": 72,
+					"ramp_s": 0.03,
+					"exp": true,
+					"dur_s": 0.062,
+					"peak": 0.15,
+					"env_s": 0.058
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.014, "peak": 0.058, "center_hz": 1750 }]
+		},
+		"cream": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 588,
+					"end_hz": 441,
+					"ramp_s": 0.022,
+					"exp": true,
+					"dur_s": 0.052,
+					"peak": 0.065,
+					"env_s": 0.048
+				},
+				{
+					"wave": "sine",
+					"start_hz": 593,
+					"end_hz": 444.75,
+					"ramp_s": 0.022,
+					"exp": true,
+					"dur_s": 0.052,
+					"peak": 0.065,
+					"env_s": 0.048
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.003, "dur_s": 0.006, "peak": 0.028, "center_hz": 2600 }]
+		},
+		"flannel": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 455,
+					"end_hz": 220,
+					"ramp_s": 0.024,
+					"exp": true,
+					"dur_s": 0.048,
+					"peak": 0.1,
+					"env_s": 0.045,
+					"filter": { "type": "bp", "freq": 1900, "q": 1.0 }
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.01, "peak": 0.036, "center_hz": 1300 }]
+		},
+		"ember": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 410,
+					"end_hz": 195,
+					"ramp_s": 0.028,
+					"exp": true,
+					"dur_s": 0.055,
+					"peak": 0.1,
+					"env_s": 0.05
+				},
+				{
+					"wave": "sine",
+					"start_hz": 820,
+					"end_hz": 390,
+					"ramp_s": 0.022,
+					"exp": true,
+					"dur_s": 0.045,
+					"peak": 0.028,
+					"env_s": 0.04
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.008, "peak": 0.032, "center_hz": 2000 }]
+		},
+		"honey": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 685,
+					"end_hz": 455,
+					"ramp_s": 0.038,
+					"exp": false,
+					"dur_s": 0.066,
+					"peak": 0.09,
+					"env_s": 0.062
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.004, "dur_s": 0.007, "peak": 0.026, "center_hz": 2400 }]
+		},
+		"cashmere": {
+			"oscillators": [
+				{
+					"wave": "sine",
+					"start_hz": 885,
+					"end_hz": 615,
+					"ramp_s": 0.02,
+					"exp": true,
+					"dur_s": 0.052,
+					"peak": 0.088,
+					"env_s": 0.048
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0, "dur_s": 0.0045, "peak": 0.022, "center_hz": 4100 }]
+		},
+		"moss": {
+			"oscillators": [
+				{
+					"wave": "triangle",
+					"start_hz": 275,
+					"end_hz": 105,
+					"ramp_s": 0.028,
+					"exp": true,
+					"dur_s": 0.058,
+					"peak": 0.12,
+					"env_s": 0.055,
+					"filter": {
+						"type": "lp_sweep",
+						"start_hz": 420,
+						"end_hz": 155,
+						"ramp_s": 0.042,
+						"q": 1.0
+					}
+				}
+			],
+			"noise_bursts": [{ "offset_s": 0.001, "dur_s": 0.012, "peak": 0.044, "center_hz": 880 }]
+		}
+	}
+}
