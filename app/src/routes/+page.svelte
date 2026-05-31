@@ -15,6 +15,7 @@
 		keyboardGroupsInvokePayload,
 		type KeyboardGroupId
 	} from '$lib/keyboard-groups';
+	import { loadPrefs, savePrefs } from '$lib/stores';
 	import LetsConnect from '$lib/components/externals/lets-connect/lets-connect.svelte';
 	import SoundPicker from './(components)/(sound-picker)/sound-picker.svelte';
 	import * as Popover from '$lib/components/internals/popover/index';
@@ -24,6 +25,7 @@
 	import IconSpeakerSimpleSlash from 'phosphor-svelte/lib/SpeakerSimpleSlashIcon';
 	import { Slider } from '$lib/components/internals/slider/index';
 	import { ScrollArea } from '$lib/components/internals/scroll-area/index';
+	import { onMount } from 'svelte';
 
 	let soundList: { id: SoundIds; name: string }[] = [
 		{ id: 'off', name: 'Off' },
@@ -69,6 +71,34 @@
 		isMuted = !isMuted;
 	}
 
+	// Prevent saving during initial load
+	let prefsLoaded = $state(false);
+
+	// Load saved preferences on mount
+	onMount(async () => {
+		const saved = await loadPrefs();
+		if (saved) {
+			selectedLeftSoundId = saved.mouseLeft.sound;
+			selectedLeftSoundVolume = saved.mouseLeft.volume;
+			selectedRightSoundId = saved.mouseRight.sound;
+			selectedRightSoundVolume = saved.mouseRight.volume;
+			keyboardPrefs = saved.keyboardGroups;
+		}
+		prefsLoaded = true;
+	});
+
+	// Persist preferences reactively whenever they change
+	$effect(() => {
+		if (!prefsLoaded) return;
+		// Read all reactive deps
+		const prefs = {
+			keyboardGroups: keyboardPrefs,
+			mouseLeft: { sound: selectedLeftSoundId, volume: selectedLeftSoundVolume },
+			mouseRight: { sound: selectedRightSoundId, volume: selectedRightSoundVolume }
+		};
+		void savePrefs(prefs);
+	});
+
 	const keyboardSoundCapture = (e: KeyboardEvent) => {
 		if (e.repeat) return;
 		const group = keyboardGroupFromCode(e.code);
@@ -98,7 +128,7 @@
 		}
 	};
 
-	/** Tauri: native rodio output (Web Audio is muted when the webview isn’t key). */
+	/** Tauri: native rodio output (Web Audio is muted when the webview isn't key). */
 	$effect(() => {
 		if (!isTauri()) return;
 		void invoke('set_sound_prefs', {
@@ -177,7 +207,7 @@
 				<ScrollArea class="h-[340px] p-2.5 pr-4">
 					<div class="flex flex-col gap-2">
 						<p class="px-0.5 pb-1 text-[0.65rem] leading-snug text-muted-foreground">
-							Each physical key group can use its own profile—defaults are a mixed “real board”
+							Each physical key group can use its own profile—defaults are a mixed "real board"
 							blend.
 						</p>
 						{#each KEYBOARD_GROUP_ORDER as gid (gid)}
