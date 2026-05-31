@@ -18,8 +18,9 @@
 	import LetsConnect from '$lib/components/externals/lets-connect/lets-connect.svelte';
 	import SoundPicker from './(components)/(sound-picker)/sound-picker.svelte';
 	import * as Popover from '$lib/components/internals/popover/index';
-	import { buttonVariants } from '$lib/components/internals/button';
+	import { buttonVariants, Button } from '$lib/components/internals/button';
 	import IconSlidersHorizontal from 'phosphor-svelte/lib/SlidersHorizontalIcon';
+	import IconPower from 'phosphor-svelte/lib/PowerIcon';
 	import { ScrollArea } from '$lib/components/internals/scroll-area/index';
 
 	let soundList: { id: SoundIds; name: string }[] = [
@@ -43,6 +44,14 @@
 		{ id: 'cashmere', name: 'Cashmere' },
 		{ id: 'moss', name: 'Moss' }
 	];
+
+	let autoStartEnabled = $state(false);
+
+	function toggleAutoStart() {
+		if (!isTauri()) return;
+		autoStartEnabled = !autoStartEnabled;
+		void invoke('set_autostart', { enabled: autoStartEnabled });
+	}
 
 	let selectedLeftSoundId = $state<SoundIds>(DEFAULT_MOUSE_PREFS.left.sound);
 	let selectedLeftSoundVolume = $state(DEFAULT_MOUSE_PREFS.left.volume);
@@ -190,6 +199,21 @@
 
 	<section>
 		<LetsConnect />
+	</section>
+
+	<section class="flex items-center justify-between rounded-lg bg-secondary p-4">
+		<div class="flex items-center gap-2">
+			<IconPower class="h-4 w-4 text-muted-foreground" />
+			<p class="text-xs font-medium tracking-wider text-muted-foreground">Auto-start on login</p>
+		</div>
+		<Button
+			variant={autoStartEnabled ? 'default' : 'outline'}
+			size="sm"
+			class="text-xs"
+			onclick={toggleAutoStart}
+		>
+			{autoStartEnabled ? 'Enabled' : 'Disabled'}
+		</Button>
 	</section>
 
 	<footer class="flex justify-end">
