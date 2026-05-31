@@ -1,0 +1,3 @@
+export const GET = () => {
+	return new Response('google-site-verification: google720ba10ae1095b28.html');
+};

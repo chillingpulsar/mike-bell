@@ -1,0 +1,30 @@
+# Package Managers
+**/package-lock.json
+**/pnpm-lock.yaml
+**/yarn.lock
+**/bun.lock
+**/bun.lockb
+
+# Build Output
+**/node_modules
+**/build
+**/.svelte-kit
+**/target
+**/.wrangler
+**/.output
+
+# Static Assets
+**/static/
+**/icons/
+
+# Rust
+**/Cargo.lock
+
+# OS
+.DS_Store
+
+# Misc
+.env
+.env.*
+!.env.example
+!.env.test
