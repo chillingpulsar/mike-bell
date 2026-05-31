@@ -1,3 +1,5 @@
+use tauri::{Emitter, Manager};
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod desktop_audio;
 
@@ -58,7 +60,7 @@ fn upload_custom_sound(app: tauri::AppHandle, name: String, data: Vec<u8>) -> Re
     let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("custom_sounds");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
 
-    let safe_name = name.replace(['/', '\\', '..'], "_");
+    let safe_name = name.replace(['/', '\\'], "_").replace("..", "_");
     let path = dir.join(&safe_name);
     std::fs::write(&path, data).map_err(|e| e.to_string())?;
 
@@ -121,7 +123,7 @@ fn delete_custom_sound(app: tauri::AppHandle, filename: String) -> Result<(), St
 #[tauri::command]
 fn set_autostart(app: tauri::AppHandle, enabled: bool) {
     use tauri_plugin_autostart::ManagerExt;
-    let autostart_manager = app.autostart();
+    let autostart_manager = app.autolaunch();
     if enabled {
         let _ = autostart_manager.enable();
     } else {
