@@ -15,13 +15,18 @@
 		keyboardGroupsInvokePayload,
 		type KeyboardGroupId
 	} from '$lib/keyboard-groups';
+	import { BUILTIN_PROFILES, loadProfiles, saveProfiles, type SoundProfile } from '$lib/profiles';
 	import { loadPrefs, savePrefs } from '$lib/stores';
 	import LetsConnect from '$lib/components/externals/lets-connect/lets-connect.svelte';
 	import SoundPicker from './(components)/(sound-picker)/sound-picker.svelte';
 	import * as Popover from '$lib/components/internals/popover/index';
 	import { buttonVariants, Button } from '$lib/components/internals/button';
+	import * as Select from '$lib/components/internals/select/index';
+	import { Input } from '$lib/components/internals/input/index';
 	import IconSlidersHorizontal from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 	import IconPower from 'phosphor-svelte/lib/PowerIcon';
+	import IconFloppyDisk from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import IconTrash from 'phosphor-svelte/lib/TrashIcon';
 	import IconSpeakerSimpleHigh from 'phosphor-svelte/lib/SpeakerSimpleHighIcon';
 	import IconSpeakerSimpleSlash from 'phosphor-svelte/lib/SpeakerSimpleSlashIcon';
 	import { Slider } from '$lib/components/internals/slider/index';
@@ -70,6 +75,40 @@
 		structuredClone(DEFAULT_KEYBOARD_GROUP_PREFS)
 	);
 
+	// Profiles
+	let userProfiles = $state<SoundProfile[]>([]);
+	let newProfileName = $state('');
+
+	const allProfiles = $derived<SoundProfile[]>([...BUILTIN_PROFILES, ...userProfiles]);
+
+	function loadProfile(profile: SoundProfile) {
+		keyboardPrefs = structuredClone(profile.keyboardGroups);
+		selectedLeftSoundId = profile.mouseLeft.sound;
+		selectedLeftSoundVolume = profile.mouseLeft.volume;
+		selectedRightSoundId = profile.mouseRight.sound;
+		selectedRightSoundVolume = profile.mouseRight.volume;
+	}
+
+	function saveCurrentAsProfile() {
+		const name = newProfileName.trim();
+		if (!name) return;
+		const profile: SoundProfile = {
+			name,
+			keyboardGroups: structuredClone(keyboardPrefs),
+			mouseLeft: { sound: selectedLeftSoundId, volume: selectedLeftSoundVolume },
+			mouseRight: { sound: selectedRightSoundId, volume: selectedRightSoundVolume }
+		};
+		userProfiles = [...userProfiles, profile];
+		newProfileName = '';
+		void saveProfiles(userProfiles);
+	}
+
+	function deleteProfile(index: number) {
+		// index is relative to userProfiles (builtin profiles can't be deleted)
+		userProfiles = userProfiles.filter((_, i) => i !== index);
+		void saveProfiles(userProfiles);
+	}
+
 	/** Effective volume: per-group volume * master volume * mute factor. */
 	function effectiveVolume(groupVolume: number): number {
 		if (isMuted) return 0;
@@ -83,8 +122,9 @@
 	// Prevent saving during initial load
 	let prefsLoaded = $state(false);
 
-	// Load saved preferences on mount
+	// Load saved preferences and profiles on mount
 	onMount(async () => {
+		userProfiles = await loadProfiles();
 		const saved = await loadPrefs();
 		if (saved) {
 			selectedLeftSoundId = saved.mouseLeft.sound;
@@ -198,6 +238,72 @@
 			</span>
 		</div>
 	</header>
+
+	<section class="flex flex-col gap-4 rounded-lg bg-secondary p-6">
+		<p class="text-xs font-medium tracking-wider text-muted-foreground">PROFILES</p>
+		<div class="flex flex-col gap-2">
+			<div class="flex gap-2">
+				<Input
+					placeholder="New profile name..."
+					bind:value={newProfileName}
+					class="text-xs"
+					onkeydown={(e: KeyboardEvent) => {
+						if (e.key === 'Enter') saveCurrentAsProfile();
+					}}
+				/>
+				<Button
+					variant="outline"
+					size="icon"
+					class="h-8 w-8 shrink-0"
+					onclick={saveCurrentAsProfile}
+					disabled={!newProfileName.trim()}
+					title="Save current settings as profile"
+				>
+					<IconFloppyDisk class="h-3.5 w-3.5" />
+				</Button>
+			</div>
+			<Select.Root
+				type="single"
+				onValueChange={(v) => {
+					const profile = allProfiles.find((p) => p.name === v);
+					if (profile) loadProfile(profile);
+				}}
+			>
+				<Select.Trigger class="text-xs">Select a profile...</Select.Trigger>
+				<Select.Content>
+					<Select.Group>
+						<Select.Label>Built-in Presets</Select.Label>
+						{#each BUILTIN_PROFILES as profile (profile.name)}
+							<Select.Item value={profile.name}>{profile.name}</Select.Item>
+						{/each}
+					</Select.Group>
+					{#if userProfiles.length > 0}
+						<Select.Separator />
+						<Select.Group>
+							<Select.Label>My Profiles</Select.Label>
+							{#each userProfiles as profile, i (profile.name)}
+								<div class="flex items-center justify-between pr-1">
+									<Select.Item value={profile.name}>{profile.name}</Select.Item>
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-6 w-6"
+										onclick={(e: MouseEvent) => {
+											e.stopPropagation();
+											deleteProfile(i);
+										}}
+										title="Delete profile"
+									>
+										<IconTrash class="h-3 w-3" />
+									</Button>
+								</div>
+							{/each}
+						</Select.Group>
+					{/if}
+				</Select.Content>
+			</Select.Root>
+		</div>
+	</section>
 
 	<section class="flex flex-col gap-4 rounded-lg bg-secondary p-6">
 		<Popover.Root>
