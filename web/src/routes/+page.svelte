@@ -8,19 +8,24 @@
 
 	let videoReady = $state(false);
 
-	const seo = $state({
-		title: 'stricky — Give your clicks character',
+	const brand = 'Mike Bell';
+
+	const seo = {
+		title: `${brand} — Give your clicks character`,
 		description:
-			'Keyboard and mouse "vibes" inspired by keybell, MechVibes, and other livestream sound-effect setups. A simple, useful desktop app built with Tauri and Svelte—lightweight, responsive, and close to native performance. Downloads for macOS, Windows, and Linux.',
+			'Keyboard and mouse "vibes" inspired by keybell, MechVibes, and other livestream sound-effect setups. A simple, useful desktop app built with Tauri and Svelte\u2014lightweight, responsive, and close to native performance. Downloads for macOS, Windows, and Linux.',
 		keywords:
-			'stricky, Mike Bell, Tauri, Svelte, desktop app, download, macOS, Windows, Linux, keyboard sounds, mouse sounds',
+			'Mike Bell, Tauri, Svelte, desktop app, download, macOS, Windows, Linux, keyboard sounds, mouse sounds',
 		image: {
 			url: `${page.url.origin}/og.png`,
-			alt: 'stricky',
+			alt: brand,
 			width: 1200,
 			height: 630
 		}
-	});
+	};
+
+	const linkClass =
+		'underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground transition-colors';
 
 	const platforms = [
 		{
@@ -54,7 +59,7 @@
 		keywords: seo.keywords,
 		image: seo.image,
 		url: page.url.origin,
-		author: 'stricky'
+		author: brand
 	}}
 	facebookTags={{
 		type: 'website',
@@ -62,7 +67,7 @@
 		title: seo.title,
 		description: seo.description,
 		locale: 'en_US',
-		siteName: 'stricky'
+		siteName: brand
 	}}
 	twitterTags={{
 		url: page.url.origin,
@@ -72,91 +77,102 @@
 	}}
 />
 
-<main class="flex min-h-screen flex-col items-center justify-center gap-16 px-4 py-20">
+<main class="flex min-h-dvh flex-col items-center justify-center gap-24 px-6 py-24">
 	<!-- Hero -->
-	<section class="flex flex-col items-center justify-center">
-		<p class="text-center text-sm font-medium tracking-widest text-muted-foreground uppercase">
-			stricky
-		</p>
-		<h1 class="text-center text-4xl leading-normal font-bold tracking-tighter md:text-6xl">
-			Give your clicks <br /><span
-				class="bg-linear-to-r from-primary to-destructive bg-clip-text text-transparent"
-				>character.</span
-			>
+	<section class="flex max-w-3xl flex-col items-center gap-6 text-center">
+		<p class="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">{brand}</p>
+		<h1 class="text-5xl leading-[1.1] font-semibold tracking-tight text-balance md:text-7xl">
+			Give your clicks<br />
+			<span class="bg-linear-to-r from-primary to-muted-foreground bg-clip-text text-transparent">
+				character.
+			</span>
 		</h1>
-		<p class="mt-6 max-w-lg text-center text-muted-foreground">
-			Keyboard and mouse "vibes" inspired by keybell, MechVibes, and other livestream sound-effect
-			setups. Built with
-			<a
-				class="underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground"
-				href="https://tauri.app"
-			>
-				Tauri
-			</a>
+		<p class="max-w-xl text-lg leading-relaxed text-muted-foreground">
+			Keyboard and mouse vibes inspired by
+			<a class={linkClass} href="https://github.com/nicholasbalasus/keybell">keybell</a>,
+			<a class={linkClass} href="https://mechvibes.com">MechVibes</a>, and other livestream
+			sound-effect setups. Built with
+			<a class={linkClass} href="https://tauri.app">Tauri</a>
 			and
-			<a
-				class="underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground"
-				href="https://svelte.dev"
-			>
-				Svelte
-			</a>
-			—lightweight, responsive, and close to native performance.
+			<a class={linkClass} href="https://svelte.dev">Svelte</a> &mdash; lightweight, responsive, and close
+			to native performance.
 		</p>
 	</section>
 
 	<!-- Demo Video -->
-	<section class="w-full max-w-4xl" style="display: {videoReady ? 'block' : 'none'}">
+	{#if videoReady}
+		<section class="">
+			<video
+				controls
+				autoplay
+				muted
+				playsinline
+				preload="auto"
+				onloadeddata={() => {
+					videoReady = true;
+				}}
+				src="https://auyvdlzajikidihnhbgy.supabase.co/storage/v1/object/public/portfolio-storage/external/demo-mike-bell.mp4"
+				class="rounded-2xl object-contain shadow-2xl"
+			></video>
+		</section>
+	{:else}
+		<!-- svelte-ignore a11y_media_has_caption -->
 		<video
-			controls
-			autoplay
-			muted
-			playsinline
 			preload="auto"
 			onloadeddata={() => {
 				videoReady = true;
 			}}
-			onerror={() => {
-				console.error('Error loading demo video');
-			}}
-			src="/demo.mp4"
-			class="aspect-video w-full rounded-lg object-cover shadow-lg transition-all duration-300"
+			src="https://auyvdlzajikidihnhbgy.supabase.co/storage/v1/object/public/portfolio-storage/external/demo-mike-bell.mp4"
+			class="hidden"
 		></video>
-	</section>
+	{/if}
 
 	<!-- Download Cards -->
 	<section class="w-full max-w-3xl">
-		<h2 class="mb-6 text-center text-2xl font-semibold tracking-tight">Install stricky</h2>
+		<h2
+			class="mb-8 text-center text-sm font-medium tracking-[0.2em] text-muted-foreground uppercase"
+		>
+			Install
+		</h2>
 		<div class="grid gap-4 sm:grid-cols-3">
-			{#each platforms as platform (platform.name)}
+			{#each platforms as { name, icon, alt, description, href } (name)}
 				<a
-					href={platform.href}
+					{href}
 					target="_blank"
-					rel="noopener noreferrer"
-					class="group flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-6 text-center transition-all duration-200 hover:border-foreground/25 hover:shadow-md"
+					rel="external noopener noreferrer"
+					class="group flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card/50 p-8 text-center backdrop-blur-sm transition-all duration-300 hover:border-foreground/15 hover:bg-card hover:shadow-xl"
 				>
-					<img src={platform.icon} alt={platform.alt} class="size-12" />
+					<img
+						src={icon}
+						{alt}
+						class="size-10 opacity-80 transition-opacity group-hover:opacity-100"
+					/>
 					<div>
-						<h3 class="text-lg font-semibold">{platform.name}</h3>
-						<p class="mt-1 text-sm text-muted-foreground">{platform.description}</p>
+						<h3 class="text-base font-semibold tracking-tight">{name}</h3>
+						<p class="mt-1 text-sm text-muted-foreground">{description}</p>
 					</div>
-					<Button variant="outline" size="sm" class="mt-2 w-full">View Install Guide</Button>
+					<Button variant="outline" size="sm" class="mt-2 w-full">Install Guide</Button>
 				</a>
 			{/each}
 		</div>
 	</section>
 
 	<!-- Footer -->
-	<footer
-		class="mt-auto flex flex-col items-center gap-2 pt-16 pb-8 text-center text-xs text-muted-foreground"
-	>
+	<footer class="mt-auto flex flex-col items-center gap-3 pt-20 pb-10 text-center">
 		<a
-			class="underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground"
+			class={linkClass}
 			href="https://github.com/chillingpulsar/mike-bell"
 			target="_blank"
 			rel="noopener noreferrer"
 		>
 			GitHub
 		</a>
-		<span>Licensed under GPLv3</span>
+		<span class="text-xs text-muted-foreground">
+			&copy; {new Date().getFullYear()}
+			{brand}. Licensed under GPLv3 with a
+			<a class={linkClass} href="https://github.com/chillingpulsar/mike-bell/blob/main/LICENSE">
+				commercial use restriction</a
+			>.
+		</span>
 	</footer>
 </main>
