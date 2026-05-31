@@ -15,12 +15,14 @@
 		keyboardGroupsInvokePayload,
 		type KeyboardGroupId
 	} from '$lib/keyboard-groups';
+	import { loadPrefs, savePrefs } from '$lib/stores';
 	import LetsConnect from '$lib/components/externals/lets-connect/lets-connect.svelte';
 	import SoundPicker from './(components)/(sound-picker)/sound-picker.svelte';
 	import * as Popover from '$lib/components/internals/popover/index';
 	import { buttonVariants } from '$lib/components/internals/button';
 	import IconSlidersHorizontal from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 	import { ScrollArea } from '$lib/components/internals/scroll-area/index';
+	import { onMount } from 'svelte';
 
 	let soundList: { id: SoundIds; name: string }[] = [
 		{ id: 'off', name: 'Off' },
@@ -52,6 +54,34 @@
 	let keyboardPrefs = $state<Record<KeyboardGroupId, { sound: SoundIds; volume: number }>>(
 		structuredClone(DEFAULT_KEYBOARD_GROUP_PREFS)
 	);
+
+	// Prevent saving during initial load
+	let prefsLoaded = $state(false);
+
+	// Load saved preferences on mount
+	onMount(async () => {
+		const saved = await loadPrefs();
+		if (saved) {
+			selectedLeftSoundId = saved.mouseLeft.sound;
+			selectedLeftSoundVolume = saved.mouseLeft.volume;
+			selectedRightSoundId = saved.mouseRight.sound;
+			selectedRightSoundVolume = saved.mouseRight.volume;
+			keyboardPrefs = saved.keyboardGroups;
+		}
+		prefsLoaded = true;
+	});
+
+	// Persist preferences reactively whenever they change
+	$effect(() => {
+		if (!prefsLoaded) return;
+		// Read all reactive deps
+		const prefs = {
+			keyboardGroups: keyboardPrefs,
+			mouseLeft: { sound: selectedLeftSoundId, volume: selectedLeftSoundVolume },
+			mouseRight: { sound: selectedRightSoundId, volume: selectedRightSoundVolume }
+		};
+		void savePrefs(prefs);
+	});
 
 	const keyboardSoundCapture = (e: KeyboardEvent) => {
 		if (e.repeat) return;
